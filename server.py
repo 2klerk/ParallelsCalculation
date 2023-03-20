@@ -1,36 +1,46 @@
 import socket
 import threading
 from Title import titleServer
-import keyboard
+from Logic import sendData
 
 # Переменная для того чтобы проводить операции сервера над клиентами
-clients = []
+clients = {}
 action = "N"
+maxUsers = 3
 
 
-# функция для обработки каждого соединения в отдельном потоке
-def handle_client(connection, client_address, message):
-    print(f'Подключился клиент {client_address}')
+# Присваиваем каждому подючённому клиенту свой id
+def editDict(client_address, ex1):
+    clients[(len(clients) + 1)] = [client_address[0], client_address[1]]
+    message = "".join(["Id:" + str(len(clients)), ex1])
+    return message.encode()
 
-    # отправляем сообщение клиенту
-    connection.send(message)
-
-    # закрываем соединение
-    connection.close()
-    print(f'Отключился клиент {client_address}')
-
+#Ввод команд для клиента
+def enteringCommand():
+    command = str(input("Action:"))
+    match command:
+        case "Brute":
+            message = "|Action:Brute|"
+            title = "Range:"
+            x = str(int(input(title))/maxUsers)
+            return "".join([message, title+x])
+        case "Message":
+            title = "Message"
+            x = str(input(title+":"))
+            return "".join(["|Action:Message|", title+":"+x])
 
 def startCon(s, ex1):
     global action
     while True:
+        if len(clients) == maxUsers:
+            break
         print('Ожидание подключения...')
         connection, client_address = s.accept()
-        clients.append(len(clients) + 1)
-        print(clients,"Id:"+str(clients[len(clients)-1]), "Action "+action)
+        message = editDict(client_address,ex1)
         # запускаем обработку соединения в отдельном потоке
         if action == "c":
             print("Отправка...")
-            client_thread = threading.Thread(target=handle_client, args=(connection, client_address, ex1))
+            client_thread = threading.Thread(target=sendData, args=(connection, client_address, message))
             client_thread.start()
         else:
             print("Command not found")
@@ -44,9 +54,7 @@ def Action():
         exit(2)
 
 
-def startAction():
-    # ex1 = b'Id:1\nAction:Brute\nRange:0-12356735'
-    ex1 = b'Id:1\nAction:Message\nMessage:PrivetBuba'
+def startAction(ex1):
     HOST = (socket.gethostname(), 8080)
     # HOST = ("localhost", 8080)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -61,4 +69,6 @@ def startAction():
 
 
 if __name__ == '__main__':
-    startAction()
+    ex1 = enteringCommand()
+    print("Your command: "+ex1)
+    startAction(ex1)

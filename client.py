@@ -1,6 +1,7 @@
 import socket
 import threading
 from Title import waitingClient
+from Logic import getData
 
 
 def getCom(com):
@@ -20,36 +21,27 @@ def Action(msg):
             # m = int(msg["Range"])
             # t = [m * (id - 1), m * id]
             t = msg["Range"].split("-")
-            brute(int(t[0]), int(t[1]))
+            return brute(int(t[0]), int(t[1])).encode()
+        case "Message":
+            return "Hello bro"
 
 
 def connect(HOST, client):
-    msg = ""
-    client.connect(HOST)
-    print("Connect to", HOST)
-    while True:
-        data = client.recv(50)
-        msg += data.decode()
-        print(data)
-        if msg == "wait" or not len(data):
-            break
-    # print(msg)
-    msg = msg.split("\n")
+    msg = getData(client, HOST)
+    msg = msg.split("|")
     msg = getCom(msg)
-    Action(msg)
+    print(Action(msg))
+    # client.send(Action(msg).encode())
 
 
 def brute(a, b):
-    f = False
+    f = -1
     psw = 12356731
     for i in range(a, b):
         if psw == i:
-            f = True
+            f = i
             break
-    if f:
-        print("Found")
-    else:
-        print("Not found")
+    return f
 
 
 if __name__ == '__main__':
