@@ -10,8 +10,8 @@ maxUsers = 3
 
 
 # Присваиваем каждому подючённому клиенту свой id
-def editDict(client_address, ex1):
-    clients[(len(clients) + 1)] = [client_address[0], client_address[1]]
+def editDict(connection, client_address, ex1):
+    clients[(len(clients) + 1)] = [connection, client_address[0], client_address[1]]
     message = "".join(["Id:" + str(len(clients)), ex1])
     return message.encode()
 
@@ -22,7 +22,7 @@ def enteringCommand():
         case "Brute":
             message = "|Action:Brute|"
             title = "Range:"
-            x = str(int(input(title))/maxUsers)
+            x = str(int(input(title))//maxUsers)
             return "".join([message, title+x])
         case "Message":
             title = "Message"
@@ -36,22 +36,23 @@ def startCon(s, ex1):
             break
         print('Ожидание подключения...')
         connection, client_address = s.accept()
-        message = editDict(client_address,ex1)
+        message = editDict(connection, client_address, ex1)
         # запускаем обработку соединения в отдельном потоке
-        if action == "c":
-            print("Отправка...")
-            client_thread = threading.Thread(target=sendData, args=(connection, client_address, message))
-            client_thread.start()
-        else:
-            print("Command not found")
+        print("Отправка...")
+        client_thread = threading.Thread(target=sendData, args=(connection, client_address, message))
+        client_thread.start()
 
 
 def Action():
     global action
     titleServer()
     action = str(input())
-    if action == "e":
-        exit(2)
+    # keyboard.wait('q')
+    action = 'c'
+
+    # if action == "e":
+    #     exit(2)
+
 
 
 def startAction(ex1):
@@ -63,12 +64,14 @@ def startAction(ex1):
     s.listen(5)
     # Принимаем соединения
     server_thread = threading.Thread(target=startCon, args=(s, ex1))
-    action_thread = threading.Thread(target=Action())
-    action_thread.start()
+    # action_thread = threading.Thread(target=Action())
+    # action_thread.start()
     server_thread.start()
 
 
 if __name__ == '__main__':
-    ex1 = enteringCommand()
+    # ex1 = enteringCommand()
+    x = 12356738//maxUsers
+    ex1 = "|Action:Brute|Range:"+str(x)
     print("Your command: "+ex1)
     startAction(ex1)

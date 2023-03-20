@@ -1,6 +1,4 @@
 import socket
-import threading
-from Title import waitingClient
 from Logic import getData
 
 
@@ -20,8 +18,11 @@ def Action(msg):
             # Получение разделённого промежутка
             # m = int(msg["Range"])
             # t = [m * (id - 1), m * id]
-            t = msg["Range"].split("-")
-            return brute(int(t[0]), int(t[1])).encode()
+            Id = int(msg["Id"])
+            x = int(msg["Range"])
+            t = (x * (Id-1), x * Id)
+            print(Id,t)
+            return brute(int(t[0]), int(t[1]))
         case "Message":
             return "Hello bro"
 
