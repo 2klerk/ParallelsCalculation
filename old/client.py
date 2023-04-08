@@ -1,6 +1,6 @@
 import socket
-from Logic import getData
-
+from Logic import getData, sendFromClient
+import pickle
 
 def getCom(com):
     l = {}
@@ -9,7 +9,7 @@ def getCom(com):
         l[t[0]] = t[1]
     return l
 
-
+# fail to ban
 def Action(msg):
     print(msg["Action"])
     match msg["Action"]:
@@ -21,18 +21,20 @@ def Action(msg):
             Id = int(msg["Id"])
             x = int(msg["Range"])
             t = (x * (Id-1), x * Id)
-            print(Id,t)
+            print(Id, t)
             return brute(int(t[0]), int(t[1]))
         case "Message":
             return "Hello bro"
 
 
-def connect(HOST, client):
-    msg = getData(client, HOST)
-    msg = msg.split("|")
-    msg = getCom(msg)
-    print(Action(msg))
-    # client.send(Action(msg).encode())
+def connect(HOST, client, choice, msg=""):
+    if not choice:
+        msg = getData(client, HOST)
+        msg = msg.split("|")
+        return getCom(msg)
+    else:
+        information = pickle.dumps({msg["Id"]: Action(msg)})
+        sendFromClient(information, HOST, client)
 
 
 def brute(a, b):
@@ -46,8 +48,10 @@ def brute(a, b):
 
 
 if __name__ == '__main__':
+    # 192.168.0.188
     HOST = (socket.gethostname(), 8080)
     # HOST = ("localhost", 10000)
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # waitingClient()
-    connect(HOST, client)
+    msg = connect(HOST, client, False)
+    # connect(HOST, client, True, msg)
