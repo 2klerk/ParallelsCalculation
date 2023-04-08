@@ -45,8 +45,10 @@ class Network:
         while True:
             try:
                 data, addr = server_socket.recvfrom(1024)
-                self.bots.append(addr[0])
-                print("Получено сообщение от {0}: {1}".format(addr, data.decode('utf-8')))
+                message = data.decode('utf-8')
+                if addr[0] not in self.bots and message == "Accepted":
+                    self.bots.append(addr[0])
+                print("Получено сообщение от {0}: {1}".format(addr, message))
             except socket.timeout:
                 print("Таймаут - больше нет сообщений")
                 break
