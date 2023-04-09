@@ -117,7 +117,6 @@ class Network:
                     exit(4)
                 case _:
                     print("Command not found!")
-
     def Client(self):
         print(self.ip, self.port)
         # создаем UDP-сокет
@@ -143,7 +142,8 @@ class Network:
             except socket.timeout:
                 print("Таймаут - больше нет сообщений")
                 break
-        server_socket.settimeout(10)
+        print("Linking end\nStart accepting data")
+        server_socket.settimeout(100)
         while True:
             try:
                 data, addr = server_socket.recvfrom(1024)  # получаем сообщение и адрес отправителя
