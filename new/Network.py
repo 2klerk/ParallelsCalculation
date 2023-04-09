@@ -43,7 +43,7 @@ class Network:
         udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         dest_address = (bot, 8080)
-        udp.sendto(data, dest_address)
+        udp.sendall(data, dest_address)
 
     def GetAcceptBot(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -140,10 +140,10 @@ class Network:
                 self.server = addr[0]
                 print("Получено сообщение от {0}: {1}".format(addr, data.decode('utf-8')))  # выводим данные
                 server_socket.sendto("Accepted".encode('utf-8'), (self.server, int(self.port)))
-                break
             except socket.timeout:
                 print("Таймаут - больше нет сообщений")
                 break
+        server_socket.settimeout(10)
         while True:
             try:
                 data, addr = server_socket.recvfrom(1024)  # получаем сообщение и адрес отправителя
