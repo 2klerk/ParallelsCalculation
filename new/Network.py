@@ -43,7 +43,7 @@ class Network:
         udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         dest_address = (bot, 8080)
-        udp.sendall(data, dest_address)
+        udp.sendto(data, dest_address)
 
     def GetAcceptBot(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -102,8 +102,8 @@ class Network:
                 case "3":
                     if len(self.bots) > 0:
                         print(self.__ActionInfo())
-                        x = str(input())
-                        match x:
+                        a = str(input())
+                        match a:
                             case "b":
                                 self.StartParallels(action="Brute")
                             case _:

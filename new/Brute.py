@@ -14,7 +14,7 @@ class Brute:
         self.pw = pw
 
     def setChars(self, chars):
-        self.pw = pw
+        self.chars = chars
 
     def brute(self):
         count = 1
