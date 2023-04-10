@@ -4,7 +4,7 @@ import re
 import socket
 # import keyboard
 import threading
-import Brute
+from Brute import Brute
 import pickle
 
 
@@ -49,15 +49,14 @@ class Network:
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server_socket.bind(('0.0.0.0', int(self.port)))
-        server_socket.settimeout(10)
+        server_socket.settimeout(4)
         while True:
             try:
                 data, addr = server_socket.recvfrom(1024)
-                print(data)
                 message = pickle.loads(data)
                 if addr[0] not in self.bots and message == True:
                     self.bots[addr[0]] = {"Status": False, "Data": None}
-                print("Получено сообщение от {0}: {1}".format(addr, message))
+                    print("Получено сообщение от {0}: {1}".format(addr, message))
             except socket.timeout:
                 print("Таймаут - больше нет сообщений")
                 break
@@ -74,7 +73,10 @@ class Network:
     def __ActionInfo(self):
         return "#########Choice#########\n" \
                "#(b) BruteForce     (b)#\n" \
-               "#(e)     Back       (e)#\n" \
+               "#(s) SortArray      (s)#\n" \
+               "#(m) MessageToBots  (m)#\n" \
+               "#(E) BotNetStop     (E)#\n" \
+               "#(e)    Back        (e)#\n" \
                "#########Choice#########\n"
 
     def CreateAction(self, id, action, array=None):
@@ -99,8 +101,8 @@ class Network:
             self.bots[addr[0]]["Status"] = True
             self.bots[addr[0]]["Data"] = message
 
-    def StartAction(self, action):
-        StartParallels_threading = threading.Thread(target=self.StartParallels, args=action)
+    def StartAction(self, action, array = None):
+        StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action, array))
         AcceptingAction_threading = threading.Thread(target=self.AcceptingAction)
         StartParallels_threading.start()
         AcceptingAction_threading.start()
@@ -127,13 +129,16 @@ class Network:
                         a = str(input())
                         match a:
                             case "b":
-                                self.StartAction(action="Brute")
+                                length = int(input("Write password length"))
+                                self.StartAction(action="Brute", array=length)
                             case "m":
                                 self.StartAction(action="Message")
                             case "s":
                                 self.StartAction(action="Sorting")
                             case "BE":
                                 self.StartAction(action="BotEnd")
+                            case "e":
+                                print()
                             case _:
                                 print("This action not found!")
                     else:
@@ -173,6 +178,13 @@ class Network:
                     print("Command BE - BotNet stopped!")
                     exit(6)
                 case "Brute":
+                    Id = data["Id"]
+                    x = data["Array"]
+                    t = t = (x * (Id-1), x * id)
+                    f = Brute(pw="BruteP")
+                    if data["Chars"] is not None:
+                        f.setChars(data["Chars"])
+                    f.brute()
                     print("Brute coming soon!")
                 case "Message":
                     print(f"{addr[0]} send {data}")
