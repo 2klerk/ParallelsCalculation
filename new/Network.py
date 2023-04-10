@@ -18,6 +18,7 @@ class Network:
         self.bots = {}  # Список ботов в ботнете и статус получения данных
         self.server = ""  # Для клиента ip сервера
         self.Action = ""
+
     def FindDevices(self):
         if self.OS == "Windows":
             addr = subprocess.check_output("arp -a", shell=True, encoding="cp1251")
@@ -101,9 +102,10 @@ class Network:
             self.bots[addr[0]]["Status"] = True
             self.bots[addr[0]]["Data"] = message
             if self.Action == "B":
+                print(message)
                 break
 
-    def StartAction(self, action, array = None):
+    def StartAction(self, action, array=None):
         StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action, array))
         AcceptingAction_threading = threading.Thread(target=self.AcceptingAction)
         StartParallels_threading.start()
@@ -132,7 +134,7 @@ class Network:
                         match a:
                             case "b":
                                 self.Action = "B"
-                                length = int(input("Write password length"))
+                                length = int(input("Write password length: "))
                                 self.StartAction(action="Brute", array=length)
                             case "m":
                                 self.Action = "M"
@@ -186,13 +188,13 @@ class Network:
                 case "Brute":
                     Id = int(data["Id"])
                     x = int(data["Array"])
-                    print(x,Id)
-                    t = (x * (Id-1), x * Id)
+                    print(x, Id)
+                    t = (x * (Id - 1), x * Id)
                     f = Brute(pw="BruteP")
                     # if data["Chars"] is not None:
                     #     f.setChars(data["Chars"])
-                    print(f.brute(abs(t[0]),abs(t[1])))
-                    print("Brute coming soon!")
+                    f = f.brute(abs(t[0]), abs(t[1]))
+                    server_socket.sendto(pickle.dumps(f), (self.server, int(self.port)))
                 case "Message":
                     print(f"{addr[0]} send {data}")
                 case _:
