@@ -17,7 +17,7 @@ class Network:
         self.addr = []  # Все адреса в локальной сети
         self.bots = {}  # Список ботов в ботнете и статус получения данных
         self.server = ""  # Для клиента ip сервера
-
+        self.Action = ""
     def FindDevices(self):
         if self.OS == "Windows":
             addr = subprocess.check_output("arp -a", shell=True, encoding="cp1251")
@@ -49,7 +49,7 @@ class Network:
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server_socket.bind(('0.0.0.0', int(self.port)))
-        server_socket.settimeout(4)
+        server_socket.settimeout(3)
         while True:
             try:
                 data, addr = server_socket.recvfrom(1024)
@@ -100,6 +100,8 @@ class Network:
             print("Получено сообщение от {0}: {1}".format(addr[0], message))
             self.bots[addr[0]]["Status"] = True
             self.bots[addr[0]]["Data"] = message
+            if self.Action == "B":
+                break
 
     def StartAction(self, action, array = None):
         StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action, array))
@@ -129,13 +131,17 @@ class Network:
                         a = str(input())
                         match a:
                             case "b":
+                                self.Action = "B"
                                 length = int(input("Write password length"))
                                 self.StartAction(action="Brute", array=length)
                             case "m":
+                                self.Action = "M"
                                 self.StartAction(action="Message")
                             case "s":
+                                self.Action = "S"
                                 self.StartAction(action="Sorting")
                             case "BE":
+                                self.Action = "BE"
                                 self.StartAction(action="BotEnd")
                             case "e":
                                 print()
