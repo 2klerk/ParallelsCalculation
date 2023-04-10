@@ -35,7 +35,7 @@ class Network:
         for i in self.addr:
             udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
             udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            message = self.ip
+            message = {"Id": None, "Action": "Auth"}
             dest_address = (i, int(self.port))
             udp.sendto(pickle.dumps(message), dest_address)
 
