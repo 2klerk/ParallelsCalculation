@@ -19,16 +19,17 @@ class Brute:
     def brute(self,a,b):
         self.start = time.time()
         count = 1
-        for CharLength in range(a+1, b+1):
-            print(CharLength)
+        for CharLength in range(a, b):
+            print(CharLength, f"Time: {time.time() - self.start}")
             password = (itertools.product(self.chars, repeat=CharLength))
             for i in password:
-                if count % 10000 == 0:
+                if count % 100000 == 0:
                     if keyboard.is_pressed("esc"):
                         print("\"esc\" pressed. Program ended.")
                         exit()
                 count += 1
                 i = "".join(i)
+                print(i)
                 if i == self.pw:
                     print("Time: ", time.time() - self.start)
                     print("\n-=-=-=-=-=-=\n")
