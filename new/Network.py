@@ -178,13 +178,14 @@ class Network:
                     print("Command BE - BotNet stopped!")
                     exit(6)
                 case "Brute":
-                    Id = data["Id"]
-                    x = data["Array"]
-                    t = t = (x * (Id-1), x * id)
+                    Id = int(data["Id"])
+                    x = int(data["Array"])
+                    print(x,Id)
+                    t = (x * (Id-1), x * Id)
                     f = Brute(pw="BruteP")
-                    if data["Chars"] is not None:
-                        f.setChars(data["Chars"])
-                    f.brute()
+                    # if data["Chars"] is not None:
+                    #     f.setChars(data["Chars"])
+                    print(f.brute(abs(t[0]),abs(t[1])))
                     print("Brute coming soon!")
                 case "Message":
                     print(f"{addr[0]} send {data}")
