@@ -1,0 +1,4 @@
+# ParallelsCalculation
+
+###function 
+- Bruteforce
