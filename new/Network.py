@@ -13,6 +13,8 @@ import pickle
 
 class Network:
     def __init__(self):
+        self.CPU = None
+        self.GPU = None
         self.host = socket.gethostname()
         self.ip = socket.gethostbyname(self.host)
         self.port = "8080"
@@ -21,6 +23,8 @@ class Network:
         self.bots = {}  # Список ботов в ботнете и статус получения данных
         self.server = ""  # Для клиента ip сервера
         self.Action = ""
+
+    def MyComputer(self):
         self.CPU = {
             "Spec": get_cpu_info()["brand_raw"],
             "cores": get_cpu_info()["count"]
@@ -34,8 +38,6 @@ class Network:
                 "type": cl.device_type.to_string(dev.type),
                 "memory": (dev.global_mem_size // 1024 // 1024)
             }
-
-    def MyComputer(self):
         return {"CPU": self.CPU, "GPU": self.GPU}
 
     def FindDevices(self):
