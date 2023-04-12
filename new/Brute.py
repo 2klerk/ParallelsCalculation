@@ -30,6 +30,8 @@ class Brute:
                         exit()
                 count += 1
                 i = "".join(i)
+                if count % 100000:
+                    print(i)
                 if i == self.pw:
                     print("Time: ", time.time() - self.start)
                     print("\n-=-=-=-=-=-=\n")
