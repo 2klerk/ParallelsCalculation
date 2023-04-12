@@ -19,7 +19,8 @@ class Brute:
     def brute(self, a, b):
         self.start = time.time()
         count = 1
-        for CharLength in range(a, b + 1):
+        b+=1
+        for CharLength in range(a, b):
             print(CharLength, time.time() - self.start)
             password = (itertools.product(self.chars, repeat=CharLength))
             for i in password:

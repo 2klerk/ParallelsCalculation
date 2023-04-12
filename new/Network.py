@@ -27,6 +27,9 @@ class Network:
     def MyComputer(self):
         return {"CPU": self.CPU, "GPU": self.GPU}
 
+    def getRange(self, x):
+        return x // len(self.bots)
+
     def setSpecs(self):
         self.CPU = {
             "Info": get_cpu_info()["brand_raw"],
@@ -105,15 +108,12 @@ class Network:
                "#(e)    Back        (e)#\n" \
                "#########Choice#########\n"
 
-    def CreateAction(self, id, action, array=None):
-        data = {"Id": id, "Action": action}
-        if array is not None:
-            data["Array"] = array
+    def CreateAction(self, data):
         return pickle.dumps(data)
 
-    def StartParallels(self, action, array=None):
+    def StartParallels(self, action):
         for i, bot in (enumerate(self.bots)):
-            data = self.CreateAction(i, action, array)
+            data = self.CreateAction(i, action)
             self.SendBot(bot=bot, data=data)
 
     def AcceptingAction(self):
@@ -130,8 +130,9 @@ class Network:
                 print(message)
                 break
 
-    def StartAction(self, action, array=None):
-        StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action, array))
+    def StartAction(self, action):
+        action["Action"] = self.Action
+        StartParallels_threading = threading.Thread(target=self.StartParallels, args=action)
         AcceptingAction_threading = threading.Thread(target=self.AcceptingAction)
         StartParallels_threading.start()
         AcceptingAction_threading.start()
@@ -156,21 +157,26 @@ class Network:
                     if len(self.bots) > 0:
                         print(self.__ActionInfo())
                         a = str(input())
+                        action = {"Id": None, "Action": None}
                         match a:
                             case "b":
                                 self.Action = "B"
                                 length = int(input("Write password length: "))
-                                self.StartAction(action="Brute", array=length)
+                                action["Range"] = self.getRange(length)
+                                self.StartAction(action=action)
                             case "m":
                                 self.Action = "M"
-                                self.StartAction(action="Message")
+                                self.StartAction(action=action)
                             case "s":
                                 self.Action = "S"
-                                self.StartAction(action="Sorting")
+                                # action["Range"] = self.getRange()
+                                self.StartAction(action=action)
                             case "BE":
                                 self.Action = "BE"
-                                self.StartAction(action="BotEnd")
+                                self.StartAction(action=action)
                             case "e":
+                                self.Action = "BE"
+                                self.StartAction(action=action)
                                 print()
                             case _:
                                 print("This action not found!")
@@ -216,12 +222,12 @@ class Network:
                         self.setSpecs()
                     server_socket.sendto(pickle.dumps({"Name": self.host, "Status": True, "PC": self.MyComputer()}),
                                          (self.server, int(self.port)))
-                case "BotEnd":
+                case "BE":
                     print("Command BE - BotNet stopped!")
                     exit(6)
-                case "Brute":
+                case "B":
                     Id = int(data["Id"])
-                    x = int(data["Array"])
+                    x = int(data["PSW"])
                     print(x, Id)
                     t = (x * (Id - 1), x * Id)
                     f = Brute(pw="BruteP")
@@ -229,7 +235,7 @@ class Network:
                     #     f.setChars(data["Chars"])
                     f = f.brute(abs(t[1]), abs(t[0]))
                     server_socket.sendto(pickle.dumps(f), (self.server, int(self.port)))
-                case "Message":
+                case "M":
                     print(f"{addr[0]} send {data}")
                 case _:
                     print(f"Unknown command from {addr[0]}")
