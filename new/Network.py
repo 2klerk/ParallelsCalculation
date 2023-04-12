@@ -1,5 +1,7 @@
 # import multiprocessing
+import numpy as np
 import pyopencl as cl
+import random
 import platform
 from cpuinfo import get_cpu_info
 import subprocess
@@ -23,6 +25,7 @@ class Network:
         self.bots = {}  # Список ботов в ботнете и статус получения данных
         self.server = ""  # Для клиента ip сервера
         self.Action = ""
+        self.ready = 0
 
     def MyComputer(self):
         return {"CPU": self.CPU, "GPU": self.GPU}
@@ -171,7 +174,16 @@ class Network:
                                 self.StartAction(action=action)
                             case "s":
                                 self.Action = "S"
-                                # action["Range"] = self.getRange()
+                                array = [random.randint(0, 100) for i in range(10)]
+                                # array = np.random.randint(low=0, high=155, size=100)
+                                print(array)
+                                L = self.getRange(len(array))
+                                subarrays = []
+                                for i in range(len(self.bots) - 1):
+                                    subarrays.append(array[i * L: (i + 1) * L])
+                                subarrays.append(array[(len(self.bots) - 1) * L:])
+                                print(subarrays)
+                                action["array"] = subarrays
                                 self.StartAction(action=action)
                             case "BE":
                                 self.Action = "BE"
