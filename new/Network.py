@@ -17,6 +17,7 @@ import time
 
 class Network:
     def __init__(self):
+        self.buffer = 10000
         self.start = None
         self.CPU = None
         self.GPU = None
@@ -82,10 +83,10 @@ class Network:
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server_socket.bind(('0.0.0.0', int(self.port)))
-        server_socket.settimeout(3)
+        server_socket.settimeout(2)
         while True:
             try:
-                data, addr = server_socket.recvfrom(1024)
+                data, addr = server_socket.recvfrom(self.buffer)
                 message = pickle.loads(data)
                 print(addr[0], message)
                 if addr[0] not in self.bots and "Status" in message and message["Status"] is True:
@@ -117,13 +118,14 @@ class Network:
     def CreateAction(self, data):
         return pickle.dumps(data)
 
-    def createSubArrays(self,array):
+    def createSubArrays(self, array):
         L = self.getRange(len(array))
         subarrays = []
         for i in range(len(self.bots) - 1):
             subarrays.append(array[i * L: (i + 1) * L])
         subarrays.append(array[(len(self.bots) - 1) * L:])
         return subarrays
+
     def StartParallels(self, action, array=None):
         for i, bot in (enumerate(self.bots)):
             if array is not None:
@@ -139,7 +141,7 @@ class Network:
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server_socket.bind(('0.0.0.0', int(self.port)))
         while True:
-            data, addr = server_socket.recvfrom(1024)
+            data, addr = server_socket.recvfrom(self.buffer)
             message = pickle.loads(data)
             print("Получено сообщение от {0}: {1}".format(addr[0], message))
             self.bots[addr[0]]["Status"] = True
@@ -243,7 +245,7 @@ class Network:
                     subarrays = self.createSubArrays(array=array)
                     print(subarrays)
                     self.StartAction(action=action, array=subarrays)
-                    print("Standard sort", end-start)
+                    print("Standard sort", end - start)
                 case _:
                     print("Command not found!")
 
@@ -263,7 +265,7 @@ class Network:
         # слушаем порт
         # получаем сообщения
         while True:
-            data, addr = server_socket.recvfrom(1024)  # получаем сообщение и адрес отправителя
+            data, addr = server_socket.recvfrom(self.buffer)  # получаем сообщение и адрес отправителя
             self.server = addr[0]
             data = pickle.loads(data)
             print("Получено сообщение от {0}: {1}".format(addr, data))  # выводим данные
