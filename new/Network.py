@@ -17,7 +17,7 @@ import time
 
 class Network:
     def __init__(self):
-        self.buffer = 10000
+        self.buffer = 100000
         self.start = None
         self.CPU = None
         self.GPU = None
