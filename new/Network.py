@@ -25,10 +25,10 @@ class Network:
         self.Action = ""
 
     def MyComputer(self):
-        self.CPU = {
-            "Spec": get_cpu_info()["brand_raw"],
-            "cores": get_cpu_info()["count"]
-        }
+        # self.CPU = {
+        #     "Spec": get_cpu_info()["brand_raw"],
+        #     "cores": get_cpu_info()["count"]
+        # }
         pl = cl.get_platforms()[0]
         devices = pl.get_devices()
         self.GPU = {}
@@ -208,7 +208,7 @@ class Network:
             print("Получено сообщение от {0}: {1}".format(addr, data))  # выводим данные
             match data["Action"]:
                 case "Auth":
-                    server_socket.sendto(pickle.dumps({"Status": True, "PC": self.MyComputer()}),
+                    server_socket.sendto(pickle.dumps({"Name": self.host, "Status": True, "PC": self.MyComputer()}),
                                          (self.server, int(self.port)))
                 case "BotEnd":
                     print("Command BE - BotNet stopped!")
