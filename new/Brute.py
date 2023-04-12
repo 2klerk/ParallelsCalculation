@@ -16,11 +16,11 @@ class Brute:
     def setChars(self, chars):
         self.chars = chars
 
-    def brute(self,a,b):
+    def brute(self, a, b):
         self.start = time.time()
         count = 1
-        for CharLength in range(a, b+1):
-            print(CharLength, time.time() - self.start() )
+        for CharLength in range(a, b + 1):
+            print(CharLength, time.time() - self.start)
             password = (itertools.product(self.chars, repeat=CharLength))
             for i in password:
                 if count % 10000 == 0:
@@ -35,7 +35,6 @@ class Brute:
                     print("Password found: " + i)
                     print("\n-=-=-=-=-=-=\n")
                     return i
-
 
 # pw = input("Password: ")
 # a = Brute(pw, chars)
