@@ -25,10 +25,13 @@ class Network:
         self.Action = ""
 
     def MyComputer(self):
-        # self.CPU = {
-        #     "Spec": get_cpu_info()["brand_raw"],
-        #     "cores": get_cpu_info()["count"]
-        # }
+        return {"CPU": self.CPU, "GPU": self.GPU}
+
+    def setSpecs(self):
+        self.CPU = {
+            "Info": get_cpu_info()["brand_raw"],
+            "cores": get_cpu_info()["count"]
+        }
         pl = cl.get_platforms()[0]
         devices = pl.get_devices()
         self.GPU = {}
@@ -38,7 +41,6 @@ class Network:
                 "type": cl.device_type.to_string(dev.type),
                 "memory": (dev.global_mem_size // 1024 // 1024)
             }
-        return {"CPU": self.CPU, "GPU": self.GPU}
 
     def FindDevices(self):
         if self.OS == "Windows":
@@ -178,6 +180,8 @@ class Network:
                     print(f"Bots in botnet: {len(self.bots)}")
                     print(self.bots)
                 case "PC":
+                    if self.GPU is None:
+                        self.setSpecs()
                     print(self.MyComputer())
                 case "IP":
                     print(self.ip)
@@ -208,6 +212,8 @@ class Network:
             print("Получено сообщение от {0}: {1}".format(addr, data))  # выводим данные
             match data["Action"]:
                 case "Auth":
+                    if self.GPU is None:
+                        self.setSpecs()
                     server_socket.sendto(pickle.dumps({"Name": self.host, "Status": True, "PC": self.MyComputer()}),
                                          (self.server, int(self.port)))
                 case "BotEnd":
