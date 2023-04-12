@@ -1,12 +1,13 @@
 class Sort:
-    def merge_sort(self, arr):
+    @staticmethod
+    def merge_sort(arr):
         if len(arr) > 1:
             mid = len(arr) // 2
             left_arr = arr[:mid]
             right_arr = arr[mid:]
 
-            self.merge_sort(left_arr)
-            self.merge_sort(right_arr)
+            Sort.merge_sort(left_arr)
+            Sort.merge_sort(right_arr)
 
             i = j = k = 0
 
@@ -29,8 +30,10 @@ class Sort:
                 j += 1
                 k += 1
 
+        return arr
+
     def mergeArray(self, arrayList):
         array = []
         for i in arrayList:
-            array += i
+            array += i["Data"]
         return array

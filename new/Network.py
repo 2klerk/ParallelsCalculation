@@ -11,10 +11,11 @@ import socket
 import threading
 from Brute import Brute
 import pickle
-
-
+from Sort import Sort
+import time
 class Network:
     def __init__(self):
+        self.start = None
         self.CPU = None
         self.GPU = None
         self.host = socket.gethostname()
@@ -114,8 +115,10 @@ class Network:
     def CreateAction(self, data):
         return pickle.dumps(data)
 
-    def StartParallels(self, action):
+    def StartParallels(self, action, array=None):
         for i, bot in (enumerate(self.bots)):
+            if array is not None:
+                action["array"] = array[i]
             action["Id"] = i
             data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data)
@@ -130,13 +133,27 @@ class Network:
             print("Получено сообщение от {0}: {1}".format(addr[0], message))
             self.bots[addr[0]]["Status"] = True
             self.bots[addr[0]]["Data"] = message
+            self.ready+=1
             if self.Action == "B":
                 print(message)
                 break
+            elif self.Action == "S" and self.ready==len(self.bots):
+                self.ready = 0
+                break
 
-    def StartAction(self, action):
+        if self.Action == "S":
+            array = Sort.merge_sort(self.bots)
+            array = Sort.merge_sort(array)
+            print(array)
+            print(f"Time: {time.time()-self.start}")
+
+
+
+
+    def StartAction(self, action, array=None):
         action["Action"] = self.Action
-        StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action,))
+        self.start = time.time()
+        StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action,array))
         AcceptingAction_threading = threading.Thread(target=self.AcceptingAction)
         StartParallels_threading.start()
         AcceptingAction_threading.start()
@@ -167,7 +184,7 @@ class Network:
                                 self.Action = "B"
                                 length = int(input("Write password length: "))
                                 action["Range"] = self.getRange(length)
-                                action["PSW"] = str(input("Write test password"))
+                                action["PSW"] = str(input("Write test password: "))
                                 self.StartAction(action=action)
                             case "m":
                                 self.Action = "M"
@@ -183,8 +200,7 @@ class Network:
                                     subarrays.append(array[i * L: (i + 1) * L])
                                 subarrays.append(array[(len(self.bots) - 1) * L:])
                                 print(subarrays)
-                                action["array"] = subarrays
-                                self.StartAction(action=action)
+                                self.StartAction(action=action, array=array)
                             case "BE":
                                 self.Action = "BE"
                                 self.StartAction(action=action)
@@ -239,6 +255,10 @@ class Network:
                 case "BE":
                     print("Command BE - BotNet stopped!")
                     exit(6)
+                case "S":
+                    array = data["array"]
+                    array = Sort.merge_sort(array)
+                    server_socket.sendto(pickle.dumps(array), (self.server, int(self.port)))
                 case "B":
                     Id = int(data["Id"])
                     x = int(data["Range"])
