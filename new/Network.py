@@ -13,6 +13,8 @@ from Brute import Brute
 import pickle
 from Sort import Sort
 import time
+
+
 class Network:
     def __init__(self):
         self.start = None
@@ -115,14 +117,23 @@ class Network:
     def CreateAction(self, data):
         return pickle.dumps(data)
 
+    def createSubArrays(self,array):
+        L = self.getRange(len(array))
+        subarrays = []
+        for i in range(len(self.bots) - 1):
+            subarrays.append(array[i * L: (i + 1) * L])
+        subarrays.append(array[(len(self.bots) - 1) * L:])
+        return subarrays
     def StartParallels(self, action, array=None):
         for i, bot in (enumerate(self.bots)):
             if array is not None:
                 action["array"] = array[i]
+                print(action["array"])
             action["Id"] = i
             data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data)
 
+    # обработка расределённых действий
     def AcceptingAction(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -133,27 +144,26 @@ class Network:
             print("Получено сообщение от {0}: {1}".format(addr[0], message))
             self.bots[addr[0]]["Status"] = True
             self.bots[addr[0]]["Data"] = message
-            self.ready+=1
+            self.ready += 1
             if self.Action == "B":
                 print(message)
                 break
-            elif self.Action == "S" and self.ready==len(self.bots):
+            elif self.Action == "S" and self.ready == len(self.bots):
                 self.ready = 0
                 break
 
         if self.Action == "S":
-            array = Sort.merge_sort(self.bots)
+            a = Sort()
+            array = a.mergeArray(arrayList=self.bots)
+            print(array)
             array = Sort.merge_sort(array)
             print(array)
-            print(f"Time: {time.time()-self.start}")
-
-
-
+            print(f"Time BotNet sort: {time.time() - self.start}")
 
     def StartAction(self, action, array=None):
         action["Action"] = self.Action
         self.start = time.time()
-        StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action,array))
+        StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action, array))
         AcceptingAction_threading = threading.Thread(target=self.AcceptingAction)
         StartParallels_threading.start()
         AcceptingAction_threading.start()
@@ -191,16 +201,13 @@ class Network:
                                 self.StartAction(action=action)
                             case "s":
                                 self.Action = "S"
-                                array = [random.randint(0, 100) for i in range(10)]
+                                length = int(input("Array size: "))
+                                array = [random.randint(0, 100) for i in range(length)]
                                 # array = np.random.randint(low=0, high=155, size=100)
                                 print(array)
-                                L = self.getRange(len(array))
-                                subarrays = []
-                                for i in range(len(self.bots) - 1):
-                                    subarrays.append(array[i * L: (i + 1) * L])
-                                subarrays.append(array[(len(self.bots) - 1) * L:])
+                                subarrays = self.createSubArrays(array=array)
                                 print(subarrays)
-                                self.StartAction(action=action, array=array)
+                                self.StartAction(action=action, array=subarrays)
                             case "BE":
                                 self.Action = "BE"
                                 self.StartAction(action=action)
@@ -223,6 +230,20 @@ class Network:
                     print(self.ip)
                 case "e":
                     exit(4)
+                case "t":
+
+                    self.Action = "S"
+                    length = int(input("Array size: "))
+                    array = [random.randint(0, 100) for i in range(length)]
+                    start = time.time()
+                    array.sort()
+                    end = time.time()
+                    # array = np.random.randint(low=0, high=155, size=100)
+                    print(array)
+                    subarrays = self.createSubArrays(array=array)
+                    print(subarrays)
+                    self.StartAction(action=action, array=subarrays)
+                    print("Standard sort", end-start)
                 case _:
                     print("Command not found!")
 
@@ -276,3 +297,4 @@ class Network:
 
 # Будущие фиксы
 # сервер отправляет сам себе запросы! Удалить адрес сервера self.ip из self.addr
+# сделать аналог tcp и разделять пакеты

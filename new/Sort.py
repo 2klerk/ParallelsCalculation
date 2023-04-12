@@ -35,5 +35,6 @@ class Sort:
     def mergeArray(self, arrayList):
         array = []
         for i in arrayList:
-            array += i["Data"]
+            print(i)
+            array += arrayList[i]["Data"]
         return array
