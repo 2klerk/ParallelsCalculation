@@ -20,7 +20,7 @@ class Brute:
         self.start = time.time()
         count = 1
         for CharLength in range(a, b):
-            print(CharLength)
+            print(CharLength, time.time() - self.start() )
             password = (itertools.product(self.chars, repeat=CharLength))
             for i in password:
                 if count % 10000 == 0:
