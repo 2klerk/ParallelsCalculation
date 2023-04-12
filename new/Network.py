@@ -113,7 +113,8 @@ class Network:
 
     def StartParallels(self, action):
         for i, bot in (enumerate(self.bots)):
-            data = self.CreateAction(i, action)
+            action["Id"] = i
+            data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data)
 
     def AcceptingAction(self):
@@ -132,7 +133,7 @@ class Network:
 
     def StartAction(self, action):
         action["Action"] = self.Action
-        StartParallels_threading = threading.Thread(target=self.StartParallels, args=action)
+        StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action,))
         AcceptingAction_threading = threading.Thread(target=self.AcceptingAction)
         StartParallels_threading.start()
         AcceptingAction_threading.start()
@@ -163,6 +164,7 @@ class Network:
                                 self.Action = "B"
                                 length = int(input("Write password length: "))
                                 action["Range"] = self.getRange(length)
+                                action["PSW"] = str(input("Write test password"))
                                 self.StartAction(action=action)
                             case "m":
                                 self.Action = "M"
@@ -227,10 +229,10 @@ class Network:
                     exit(6)
                 case "B":
                     Id = int(data["Id"])
-                    x = int(data["PSW"])
+                    x = int(data["Range"])
                     print(x, Id)
                     t = (x * (Id - 1), x * Id)
-                    f = Brute(pw="BruteP")
+                    f = Brute(pw=data["PSW"])
                     # if data["Chars"] is not None:
                     #     f.setChars(data["Chars"])
                     f = f.brute(abs(t[1]), abs(t[0]))
