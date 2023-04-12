@@ -1,4 +1,7 @@
+# import multiprocessing
+import pyopencl as cl
 import platform
+from cpuinfo import get_cpu_info
 import subprocess
 import re
 import socket
@@ -18,6 +21,22 @@ class Network:
         self.bots = {}  # Список ботов в ботнете и статус получения данных
         self.server = ""  # Для клиента ip сервера
         self.Action = ""
+        self.CPU = {
+            "Spec": get_cpu_info()["brand_raw"],
+            "cores": get_cpu_info()["count"]
+        }
+        pl = cl.get_platforms()[0]
+        devices = pl.get_devices()
+        self.GPU = {}
+        for i, dev in enumerate(devices):
+            self.GPU[f"GPU{i + 1}"] = {
+                "name": dev.name,
+                "type": cl.device_type.to_string(dev.type),
+                "memory": (dev.global_mem_size // 1024 // 1024)
+            }
+
+    def MyComputer(self):
+        return {"CPU": self.CPU, "GPU": self.GPU}
 
     def FindDevices(self):
         if self.OS == "Windows":
@@ -64,11 +83,12 @@ class Network:
 
     def __Info(self):
         return "#########Choice#########\n" \
-               "#(1)   CHECK IN LAN (1)#\n" \
-               "#(2)Find BOTS IN LAN(2)#\n" \
-               "#(3)  START BOTNET  (3)#\n" \
-               "#(p)   Print Bots   (p)#\n" \
-               "#(e)     EXIT       (e)#\n" \
+               "#(1)    CheckInLan   (1)#\n" \
+               "#(2)  FindBotsInLan  (2)#\n" \
+               "#(3)   StartBotnet   (3)#\n" \
+               "#(p)    PrintBots    (p)#\n" \
+               "#(PC)  ComputerInfo (PC)#\n" \
+               "#(e)      EXIT       (e)#\n" \
                "#########Choice#########\n"
 
     def __ActionInfo(self):
@@ -154,6 +174,8 @@ class Network:
                 case "p":
                     print(f"Bots in botnet: {len(self.bots)}")
                     print(self.bots)
+                case "PC":
+                    print(self.MyComputer())
                 case "e":
                     exit(4)
                 case _:
@@ -193,7 +215,7 @@ class Network:
                     f = Brute(pw="BruteP")
                     # if data["Chars"] is not None:
                     #     f.setChars(data["Chars"])
-                    f = f.brute(abs(t[0]), abs(t[1]))
+                    f = f.brute(abs(t[1]), abs(t[0]))
                     server_socket.sendto(pickle.dumps(f), (self.server, int(self.port)))
                 case "Message":
                     print(f"{addr[0]} send {data}")
