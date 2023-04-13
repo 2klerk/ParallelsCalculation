@@ -1,0 +1,3 @@
+keyboard
+pyopencl
+py-cpuinfo

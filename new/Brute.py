@@ -1,11 +1,14 @@
 import time
+import numpy as np
 import itertools
 from time import sleep
 import keyboard
+import hashlib
+import pyopencl as cl
 
 
 class Brute:
-    def __init__(self, pw, chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890") -> None:
+    def __init__(self, pw="123", chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890") -> None:
         self.start = None
         self.pw = pw
         self.chars = chars
@@ -36,7 +39,3 @@ class Brute:
                     print("Password found: " + i)
                     print("\n-=-=-=-=-=-=\n")
                     return i
-
-# pw = input("Password: ")
-# a = Brute(pw, chars)
-# a.brute()
