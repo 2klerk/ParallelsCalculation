@@ -1,5 +1,6 @@
 # import multiprocessing
 import numpy as np
+from pprint import pprint
 import pyopencl as cl
 import random
 import platform
@@ -17,18 +18,20 @@ import time
 
 class Network:
     def __init__(self):
+        self.large = None
         self.buffer = 1024
         self.start = None
         self.CPU = None
         self.GPU = None
         self.host = socket.gethostname()
         self.ip = socket.gethostbyname(self.host)
-        self.port = "8080"
+        self.port = 8080
+        self.reserved_port = 8091
         self.OS = platform.system()  # Операционная система
         self.addr = []  # Все адреса в локальной сети
         self.bots = {}  # Список ботов в ботнете и статус получения данных
         self.server = ""  # Для клиента ip сервера
-        self.Action = ""
+        self.Action = None
         self.ready = 0
 
     def MyComputer(self):
@@ -70,19 +73,19 @@ class Network:
             udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
             udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             message = {"Id": None, "Action": "Auth"}
-            dest_address = (i, int(self.port))
+            dest_address = (i, self.port)
             udp.sendto(pickle.dumps(message), dest_address)
 
     def SendBot(self, bot, data):
         udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        dest_address = (bot, int(self.port))
+        dest_address = (bot, self.port)
         udp.sendto(data, dest_address)
 
     def GetAcceptBot(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        server_socket.bind(('0.0.0.0', int(self.port)))
+        server_socket.bind(('0.0.0.0', self.port))
         server_socket.settimeout(2)
         while True:
             try:
@@ -128,18 +131,31 @@ class Network:
 
     def StartParallels(self, action, array=None):
         for i, bot in (enumerate(self.bots)):
-            if array is not None:
+            packets = None
+            if array is not None and self.large is False:
                 action["array"] = array[i]
                 print(action["array"])
-            action["Id"] = i
+            elif self.large is True:
+                packets = self.divPackets(array)
+                action["PKG"] = len(packets)
+                action["Id"] = i
             data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data)
+            if self.large is True:
+                for i in packets:
+                    udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+                    udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+                    dest_address = (bot, self.port)
+                    udp.sendto(i, dest_address)
+
+
+
 
     # обработка расределённых действий
     def AcceptingAction(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        server_socket.bind(('0.0.0.0', int(self.port)))
+        server_socket.bind(('0.0.0.0', self.port))
         while True:
             data, addr = server_socket.recvfrom(self.buffer)
             message = pickle.loads(data)
@@ -164,6 +180,8 @@ class Network:
 
     def StartAction(self, action, array=None):
         action["Action"] = self.Action
+        if self.large is True:
+            print()
         self.start = time.time()
         StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action, array))
         AcceptingAction_threading = threading.Thread(target=self.AcceptingAction)
@@ -223,7 +241,7 @@ class Network:
                         print("You have 0 bots in botnet")
                 case "p":
                     print(f"Bots in botnet: {len(self.bots)}")
-                    print(self.bots)
+                    pprint(self.bots)
                 case "PC":
                     if self.GPU is None:
                         self.setSpecs()
@@ -233,7 +251,6 @@ class Network:
                 case "e":
                     exit(4)
                 case "t":
-
                     self.Action = "S"
                     length = int(input("Array size: "))
                     array = [random.randint(0, 100) for i in range(length)]
@@ -261,7 +278,7 @@ class Network:
         # subnet_address = '.'.join(ip_address.split('.')[:-1]) + '.0'
         # broadcast_address = f"<{subnet_address}>"  # здесь необходимо указать адрес подсети для броадкаста
         # привязываем сокет к адресу и порту
-        server_socket.bind(('0.0.0.0', int(self.port)))
+        server_socket.bind(('0.0.0.0', self.port))
         # слушаем порт
         # получаем сообщения
         while True:
@@ -274,14 +291,15 @@ class Network:
                     if self.GPU is None:
                         self.setSpecs()
                     server_socket.sendto(pickle.dumps({"Name": self.host, "Status": True, "PC": self.MyComputer()}),
-                                         (self.server, int(self.port)))
+                                         (self.server, self.port))
                 case "BE":
                     print("Command BE - BotNet stopped!")
                     exit(6)
                 case "S":
+                    self.WaitPackets(data["PKG"])
                     array = data["array"]
                     array = Sort.merge_sort(array)
-                    server_socket.sendto(pickle.dumps(array), (self.server, int(self.port)))
+                    server_socket.sendto(pickle.dumps(array), (self.server, self.port))
                 case "B":
                     Id = int(data["Id"])
                     x = int(data["Range"])
@@ -291,11 +309,30 @@ class Network:
                     # if data["Chars"] is not None:
                     #     f.setChars(data["Chars"])
                     f = f.brute(abs(t[1]), abs(t[0]))
-                    server_socket.sendto(pickle.dumps(f), (self.server, int(self.port)))
+                    server_socket.sendto(pickle.dumps(f), (self.server, self.port))
                 case "M":
                     print(f"{addr[0]} send {data}")
                 case _:
                     print(f"Unknown command from {addr[0]}")
+
+    def divPackets(self, data):
+        # Разделение данных на части
+        chunks = [data[i:i + self.buffer] for i in range(0, len(data), self.buffer)]
+        return pickle.dumps(chunks)
+
+    def WaitPackets(self, wp):  # wp - waitPackage ap - acceptedPackage
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        server_socket.bind(('0.0.0.0', self.reserved_port))
+        ap = 0
+        fulldata = b''
+        while True:
+            data, addr = server_socket.recvfrom(self.buffer)  # получаем сообщение и адрес отправителя
+            fulldata += data
+            ap += 1
+            if ap == wp:
+                break
+        return pickle.dumps(fulldata)
 
 # Будущие фиксы
 # сервер отправляет сам себе запросы! Удалить адрес сервера self.ip из self.addr
