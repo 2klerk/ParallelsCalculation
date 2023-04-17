@@ -145,7 +145,7 @@ class Network:
                 for i in packets:
                     udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
                     udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-                    dest_address = (bot, self.port)
+                    dest_address = (bot, self.reserved_port)
                     udp.sendto(i, dest_address)
 
 
