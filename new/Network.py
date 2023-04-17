@@ -136,9 +136,9 @@ class Network:
                 action["array"] = array[i]
                 print(action["array"])
             elif self.large is True:
-                packets = self.divPackets(array)
+                packets = self.divPackets(array[i])
                 action["PKG"] = len(packets)
-                action["Id"] = i
+            action["Id"] = i
             data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data)
             if self.large is True:
@@ -222,8 +222,8 @@ class Network:
                             case "s":
                                 self.Action = "S"
                                 length = int(input("Array size: "))
-                                if length>500:
-                                    self.large = True
+                                # if length > 500:
+                                self.large = True
                                 array = [random.randint(0, 100) for i in range(length)]
                                 # array = np.random.randint(low=0, high=155, size=100)
                                 print(array)
@@ -299,8 +299,7 @@ class Network:
                     print("Command BE - BotNet stopped!")
                     exit(6)
                 case "S":
-                    self.WaitPackets(data["PKG"])
-                    array = data["array"]
+                    array = self.WaitPackets(data["PKG"])
                     array = Sort.merge_sort(array)
                     server_socket.sendto(pickle.dumps(array), (self.server, self.port))
                 case "B":
@@ -320,8 +319,12 @@ class Network:
 
     def divPackets(self, data):
         # Разделение данных на части
+        print(data)
+        data = pickle.dumps(data)
+        print(data)
         chunks = [data[i:i + self.buffer] for i in range(0, len(data), self.buffer)]
-        return pickle.dumps(chunks)
+        print(chunks)
+        return chunks
 
     def WaitPackets(self, wp):  # wp - waitPackage ap - acceptedPackage
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -335,7 +338,7 @@ class Network:
             ap += 1
             if ap == wp:
                 break
-        return pickle.dumps(fulldata)
+        return pickle.loads(fulldata)
 
 # Будущие фиксы
 # сервер отправляет сам себе запросы! Удалить адрес сервера self.ip из self.addr
