@@ -222,6 +222,8 @@ class Network:
                             case "s":
                                 self.Action = "S"
                                 length = int(input("Array size: "))
+                                if length>500:
+                                    self.large = True
                                 array = [random.randint(0, 100) for i in range(length)]
                                 # array = np.random.randint(low=0, high=155, size=100)
                                 print(array)
