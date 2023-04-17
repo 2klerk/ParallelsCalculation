@@ -17,7 +17,7 @@ import time
 
 class Network:
     def __init__(self):
-        self.buffer = 1024  # размер пакета
+        self.buffer = 1024
         self.start = None
         self.CPU = None
         self.GPU = None
@@ -27,10 +27,9 @@ class Network:
         self.OS = platform.system()  # Операционная система
         self.addr = []  # Все адреса в локальной сети
         self.bots = {}  # Список ботов в ботнете и статус получения данных
-        self.server = None  # Для клиента ip сервера
+        self.server = ""  # Для клиента ip сервера
         self.Action = ""
         self.ready = 0
-        self.large = False
 
     def MyComputer(self):
         return {"CPU": self.CPU, "GPU": self.GPU}
@@ -131,15 +130,10 @@ class Network:
         for i, bot in (enumerate(self.bots)):
             if array is not None:
                 action["array"] = array[i]
-            if self.large is True:  # если превышает буфер
-                action["Key"] = "W"
-                sub = self.subPackets(array)
-                for i in sub:
-                    self.SendBot(bot=bot, data=data)
-            else:
-                action["Id"] = i
-                data = self.CreateAction(action)
-                self.SendBot(bot=bot, data=data)
+                print(action["array"])
+            action["Id"] = i
+            data = self.CreateAction(action)
+            self.SendBot(bot=bot, data=data)
 
     # обработка расределённых действий
     def AcceptingAction(self):
@@ -150,22 +144,15 @@ class Network:
             data, addr = server_socket.recvfrom(self.buffer)
             message = pickle.loads(data)
             print("Получено сообщение от {0}: {1}".format(addr[0], message))
-            if "Key" in data and data["Key"] == "W":
-                self.bots[addr[0]]["Data"] += data["array"]
-            else:
-                self.bots[addr[0]]["Status"] = True
-                if self.large == 0:
-                    self.bots[addr[0]]["Data"] = message
-                else:
-                    self.bots[addr[0]]["Data"] = message
-                self.ready += 1
-                if self.Action == "B":
-                    print(message)
-                    break
-                elif self.Action == "S":
-                    if self.ready == len(self.bots):
-                        self.ready = 0
-                        break
+            self.bots[addr[0]]["Status"] = True
+            self.bots[addr[0]]["Data"] = message
+            self.ready += 1
+            if self.Action == "B":
+                print(message)
+                break
+            elif self.Action == "S" and self.ready == len(self.bots):
+                self.ready = 0
+                break
 
         if self.Action == "S":
             a = Sort()
@@ -217,7 +204,7 @@ class Network:
                             case "s":
                                 self.Action = "S"
                                 length = int(input("Array size: "))
-                                array = [random.randint(0, 100) for _ in range(length)]
+                                array = [random.randint(0, 100) for i in range(length)]
                                 # array = np.random.randint(low=0, high=155, size=100)
                                 print(array)
                                 subarrays = self.createSubArrays(array=array)
@@ -246,6 +233,7 @@ class Network:
                 case "e":
                     exit(4)
                 case "t":
+
                     self.Action = "S"
                     length = int(input("Array size: "))
                     array = [random.randint(0, 100) for i in range(length)]
@@ -262,7 +250,6 @@ class Network:
                     print("Command not found!")
 
     def Client(self):
-        full_data = []
         print(self.ip, self.port)
         # создаем UDP-сокет
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -279,59 +266,37 @@ class Network:
         # получаем сообщения
         while True:
             data, addr = server_socket.recvfrom(self.buffer)  # получаем сообщение и адрес отправителя
-            if self.server is None:
-                self.server = addr[0]
+            self.server = addr[0]
             data = pickle.loads(data)
             print("Получено сообщение от {0}: {1}".format(addr, data))  # выводим данные
-            if "Key" in data and data["Key"] == "W":
-                full_data += data["array"]
-                self.large = True
-            else:
-                match data["Action"]:
-                    case "Auth":
-                        if self.GPU is None:
-                            self.setSpecs()
-                        server_socket.sendto(pickle.dumps({"Name": self.host, "Status": True, "PC": self.MyComputer()}),
-                                             (self.server, int(self.port)))
-                    case "BE":
-                        print("Command BE - BotNet stopped!")
-                        exit(6)
-                    case "S":
-                        if len(full_data) == 0:
-                            full_data = data["array"]
-                        full_data = Sort.merge_sort(full_data)
-                        if self.large is True:
-                            full_data = self.subPackets(full_data)
-                            n = len(full_data)
-                            for i in range(n - 2):
-                                server_socket.sendto(pickle.dumps({"Key": "W", "Data": i}),
-                                                     (self.server, int(self.port)))
-                            server_socket.sendto(full_data[n - 1], (self.server, int(self.port)))
-                        else:
-                            server_socket.sendto(pickle.dumps(full_data), (self.server, int(self.port)))
-                    case "B":
-                        Id = int(data["Id"])
-                        x = int(data["Range"])
-                        print(x, Id)
-                        t = (x * (Id - 1), x * Id)
-                        f = Brute(pw=data["PSW"])
-                        # if data["Chars"] is not None:
-                        #     f.setChars(data["Chars"])
-                        f = f.brute(abs(t[1]), abs(t[0]))
-                        server_socket.sendto(pickle.dumps(f), (self.server, int(self.port)))
-                    case "M":
-                        print(f"{addr[0]} send {data}")
-                    case _:
-                        print(f"Unknown command from {addr[0]}")
+            match data["Action"]:
+                case "Auth":
+                    if self.GPU is None:
+                        self.setSpecs()
+                    server_socket.sendto(pickle.dumps({"Name": self.host, "Status": True, "PC": self.MyComputer()}),
+                                         (self.server, int(self.port)))
+                case "BE":
+                    print("Command BE - BotNet stopped!")
+                    exit(6)
+                case "S":
+                    array = data["array"]
+                    array = Sort.merge_sort(array)
+                    server_socket.sendto(pickle.dumps(array), (self.server, int(self.port)))
+                case "B":
+                    Id = int(data["Id"])
+                    x = int(data["Range"])
+                    print(x, Id)
+                    t = (x * (Id - 1), x * Id)
+                    f = Brute(pw=data["PSW"])
+                    # if data["Chars"] is not None:
+                    #     f.setChars(data["Chars"])
+                    f = f.brute(abs(t[1]), abs(t[0]))
+                    server_socket.sendto(pickle.dumps(f), (self.server, int(self.port)))
+                case "M":
+                    print(f"{addr[0]} send {data}")
+                case _:
+                    print(f"Unknown command from {addr[0]}")
 
-    def subPackets(self, data):
-        # Получение байтового представления контейнера
-        data_bytes = pickle.dumps(data)
-        # Разделение данных на части
-        chunks = [data_bytes[i:i + self.buffer] for i in range(0, len(data_bytes), self.buffer)]
-        return chunks
-
-# сделать функцию определения объёма строки чтобы не выйти за пределы
 # Будущие фиксы
 # сервер отправляет сам себе запросы! Удалить адрес сервера self.ip из self.addr
 # сделать аналог tcp и разделять пакеты
