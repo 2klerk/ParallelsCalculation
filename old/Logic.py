@@ -3,7 +3,7 @@ def getData(client, HOST):
     client.connect(HOST)
     print("Connect to", HOST)
     while True:
-        data = client.recv(50)
+        data = client.recv(1024)
         msg += data.decode()
         print(data)
         if not len(data):
