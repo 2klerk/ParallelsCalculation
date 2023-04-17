@@ -292,6 +292,7 @@ class Network:
                 case "Auth":
                     if self.GPU is None:
                         self.setSpecs()
+                    print(self.server, self.port)
                     server_socket.sendto(pickle.dumps({"Name": self.host, "Status": True, "PC": self.MyComputer()}),
                                          (self.server, self.port))
                 case "BE":
