@@ -291,10 +291,11 @@ class Network:
                 case "S":
                     array = self.WaitPackets(data["PKG"])
                     array = Sort.merge_sort(array)
+                    print(array)
                     array = self.divPackets(array)
                     server_socket.sendto(pickle.dumps({"Action": "W", "PKG": len(array)}), (self.server, self.port))
                     for i in array:
-                        server_socket.sendto(pickle.dumps(i), (self.server, self.port))
+                        server_socket.sendto(pickle.dumps(i), (self.server, self.reserved_port))
                 case "B":
                     Id = int(data["Id"])
                     x = int(data["Range"])
@@ -310,11 +311,8 @@ class Network:
 
     # Разделение данных на пакеты
     def divPackets(self, data):
-        print(data)
         data = pickle.dumps(data)
-        print(data)
         chunks = [data[i:i + self.buffer] for i in range(0, len(data), self.buffer)]
-        print(chunks)
         return chunks
 
     #Получение множества пакетов
