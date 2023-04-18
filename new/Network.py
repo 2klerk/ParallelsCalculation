@@ -144,8 +144,8 @@ class Network:
             data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data, port=self.port)
             if self.large is True:
-                for i in packets:
-                    self.SendBot(self.reserved_port)
+                for j in packets:
+                    self.SendBot(bot=bot, data=j, port=self.reserved_port)
 
     # обработка расределённых действий
     def AcceptingAction(self):
@@ -292,7 +292,7 @@ class Network:
                     array = self.WaitPackets(data["PKG"])
                     array = Sort.merge_sort(array)
                     array = self.divPackets(array)
-                    server_socket.sendto(pickle.dumps({"Action": "W", "PKG": len(array)}))
+                    server_socket.sendto(pickle.dumps({"Action": "W", "PKG": len(array)}), (self.server, self.port))
                     for i in array:
                         server_socket.sendto(pickle.dumps(i), (self.server, self.port))
                 case "B":
