@@ -156,8 +156,6 @@ class Network:
             data, addr = server_socket.recvfrom(self.buffer)
             message = pickle.loads(data)
             print("Получено сообщение от {0}: {1}".format(addr[0], message))
-            self.bots[addr[0]]["Status"] = True
-            self.ready += 1
             if "Action" in message and message["Action"] == "W" and self.large is True:
                 array = self.WaitPackets(message["PKG"])
                 self.bots[addr[0]]["Data"] = array
@@ -168,8 +166,9 @@ class Network:
                 break
             if self.Action == "S" and self.ready == len(self.bots):
                 break
-
+        print(self.bots)
         if self.Action == "S":
+            print(self.bots)
             a = Sort()
             array = a.mergeArray(arrayList=self.bots)
             array = Sort.merge_sort(array)
@@ -224,7 +223,7 @@ class Network:
                                 subarrays = self.createSubArrays(array=array)
                                 print(subarrays)
                                 self.StartAction(action=action, array=subarrays)
-                                self.ResetAction()
+                                # self.ResetAction()
                             case "BE":
                                 self.Action = "BE"
                                 self.StartAction(action=action)
@@ -317,6 +316,7 @@ class Network:
 
     #Получение множества пакетов
     def WaitPackets(self, wp):  # wp - waitPackage ap - acceptedPackage
+        print(f"Waiting Packets!\nPackets: {wp}")
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server_socket.bind(('0.0.0.0', self.reserved_port))
@@ -325,6 +325,7 @@ class Network:
         while True:
             data, addr = server_socket.recvfrom(self.buffer)  # получаем сообщение и адрес отправителя
             fulldata += data
+            print(fulldata)
             ap += 1
             if ap == wp:
                 break
