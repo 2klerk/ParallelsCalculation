@@ -1,5 +1,4 @@
 # import multiprocessing
-import numpy as np
 from pprint import pprint
 import pyopencl as cl
 import random
@@ -40,6 +39,11 @@ class Network:
     def getRange(self, x):
         return x // len(self.bots)
 
+    def ResetAction(self):
+        self.Action = None
+        self.large = None
+        self.ready = 0
+
     def setSpecs(self):
         self.CPU = {
             "Info": get_cpu_info()["brand_raw"],
@@ -58,14 +62,9 @@ class Network:
     def FindDevices(self):
         if self.OS == "Windows":
             addr = subprocess.check_output("arp -a", shell=True, encoding="cp1251")
-            # MyAddr = subprocess.check_output("ipconfig", shell=True, encoding="cp1251")
             ip_regex = r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
             addr = re.findall(ip_regex, addr)
-            # MyAddr = re.findall(ip_regex, MyAddr)
-            # print(MyAddr)
-            # addr = [i for i in addr if i not in MyAddr]
             self.addr = addr
-            # print(self.addr)
 
     # перед работой сделать udp запросы по адресам, которые есть в self.addr
     def FindBots(self):
@@ -76,17 +75,18 @@ class Network:
             dest_address = (i, self.port)
             udp.sendto(pickle.dumps(message), dest_address)
 
-    def SendBot(self, bot, data):
+    def SendBot(self, bot, data, port):
         udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        dest_address = (bot, self.port)
+        dest_address = (bot, port)
         udp.sendto(data, dest_address)
 
+    # Получение данных авторизационных данных
     def GetAcceptBot(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server_socket.bind(('0.0.0.0', self.port))
-        server_socket.settimeout(2)
+        server_socket.settimeout(3)
         while True:
             try:
                 data, addr = server_socket.recvfrom(self.buffer)
@@ -121,6 +121,7 @@ class Network:
     def CreateAction(self, data):
         return pickle.dumps(data)
 
+    # Разделение массивов на n частей, где n число ботов
     def createSubArrays(self, array):
         L = self.getRange(len(array))
         subarrays = []
@@ -129,6 +130,7 @@ class Network:
         subarrays.append(array[(len(self.bots) - 1) * L:])
         return subarrays
 
+    # Отправка запросов клиентам
     def StartParallels(self, action, array=None):
         for i, bot in (enumerate(self.bots)):
             packets = None
@@ -140,16 +142,10 @@ class Network:
                 action["PKG"] = len(packets)
             action["Id"] = i
             data = self.CreateAction(action)
-            self.SendBot(bot=bot, data=data)
+            self.SendBot(bot=bot, data=data, port=self.port)
             if self.large is True:
                 for i in packets:
-                    udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-                    udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-                    dest_address = (bot, self.reserved_port)
-                    udp.sendto(i, dest_address)
-
-
-
+                    self.SendBot(self.reserved_port)
 
     # обработка расределённых действий
     def AcceptingAction(self):
@@ -161,27 +157,27 @@ class Network:
             message = pickle.loads(data)
             print("Получено сообщение от {0}: {1}".format(addr[0], message))
             self.bots[addr[0]]["Status"] = True
-            self.bots[addr[0]]["Data"] = message
             self.ready += 1
-            if self.Action == "B":
+            if "Action" in message and message["Action"] == "W" and self.large is True:
+                array = self.WaitPackets(message["PKG"])
+                self.bots[addr[0]]["Data"] = array
+                self.bots[addr[0]]["Status"] = True
+                self.ready += 1
+            elif self.Action == "B":
                 print(message)
                 break
-            elif self.Action == "S" and self.ready == len(self.bots):
-                self.ready = 0
+            if self.Action == "S" and self.ready == len(self.bots):
                 break
 
         if self.Action == "S":
             a = Sort()
             array = a.mergeArray(arrayList=self.bots)
-            print(array)
             array = Sort.merge_sort(array)
             print(array)
             print(f"Time BotNet sort: {time.time() - self.start}")
 
     def StartAction(self, action, array=None):
         action["Action"] = self.Action
-        if self.large is True:
-            print()
         self.start = time.time()
         StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action, array))
         AcceptingAction_threading = threading.Thread(target=self.AcceptingAction)
@@ -222,14 +218,13 @@ class Network:
                             case "s":
                                 self.Action = "S"
                                 length = int(input("Array size: "))
-                                # if length > 500:
                                 self.large = True
                                 array = [random.randint(0, 100) for i in range(length)]
-                                # array = np.random.randint(low=0, high=155, size=100)
                                 print(array)
                                 subarrays = self.createSubArrays(array=array)
                                 print(subarrays)
                                 self.StartAction(action=action, array=subarrays)
+                                self.ResetAction()
                             case "BE":
                                 self.Action = "BE"
                                 self.StartAction(action=action)
@@ -259,12 +254,12 @@ class Network:
                     start = time.time()
                     array.sort()
                     end = time.time()
-                    # array = np.random.randint(low=0, high=155, size=100)
                     print(array)
                     subarrays = self.createSubArrays(array=array)
                     print(subarrays)
                     self.StartAction(action=action, array=subarrays)
                     print("Standard sort", end - start)
+                    self.ResetAction()
                 case _:
                     print("Command not found!")
 
@@ -275,10 +270,6 @@ class Network:
         # разрешаем отправку широковещательных пакетов
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         # устанавливаем адрес и порт широковещательной рассылки
-        # ip_address = socket.gethostbyname(self.ip)
-        # получаем адрес подсети
-        # subnet_address = '.'.join(ip_address.split('.')[:-1]) + '.0'
-        # broadcast_address = f"<{subnet_address}>"  # здесь необходимо указать адрес подсети для броадкаста
         # привязываем сокет к адресу и порту
         server_socket.bind(('0.0.0.0', self.port))
         # слушаем порт
@@ -292,7 +283,6 @@ class Network:
                 case "Auth":
                     if self.GPU is None:
                         self.setSpecs()
-                    print(self.server, self.port)
                     server_socket.sendto(pickle.dumps({"Name": self.host, "Status": True, "PC": self.MyComputer()}),
                                          (self.server, self.port))
                 case "BE":
@@ -301,15 +291,16 @@ class Network:
                 case "S":
                     array = self.WaitPackets(data["PKG"])
                     array = Sort.merge_sort(array)
-                    server_socket.sendto(pickle.dumps(array), (self.server, self.port))
+                    array = self.divPackets(array)
+                    server_socket.sendto(pickle.dumps({"Action": "W", "PKG": len(array)}))
+                    for i in array:
+                        server_socket.sendto(pickle.dumps(i), (self.server, self.port))
                 case "B":
                     Id = int(data["Id"])
                     x = int(data["Range"])
                     print(x, Id)
                     t = (x * (Id - 1), x * Id)
                     f = Brute(pw=data["PSW"])
-                    # if data["Chars"] is not None:
-                    #     f.setChars(data["Chars"])
                     f = f.brute(abs(t[1]), abs(t[0]))
                     server_socket.sendto(pickle.dumps(f), (self.server, self.port))
                 case "M":
@@ -317,8 +308,8 @@ class Network:
                 case _:
                     print(f"Unknown command from {addr[0]}")
 
+    # Разделение данных на пакеты
     def divPackets(self, data):
-        # Разделение данных на части
         print(data)
         data = pickle.dumps(data)
         print(data)
@@ -326,6 +317,7 @@ class Network:
         print(chunks)
         return chunks
 
+    #Получение множества пакетов
     def WaitPackets(self, wp):  # wp - waitPackage ap - acceptedPackage
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -340,6 +332,7 @@ class Network:
                 break
         return pickle.loads(fulldata)
 
+# Похожие функции FIndbots SendBots
 # Будущие фиксы
 # сервер отправляет сам себе запросы! Удалить адрес сервера self.ip из self.addr
 # сделать аналог tcp и разделять пакеты
