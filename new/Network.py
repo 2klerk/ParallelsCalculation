@@ -13,6 +13,7 @@ from Brute import Brute
 import pickle
 from Sort import Sort
 import time
+import os
 
 
 class Network:
@@ -45,19 +46,27 @@ class Network:
         self.ready = 0
 
     def setSpecs(self):
-        self.CPU = {
-            "Info": get_cpu_info()["brand_raw"],
-            "cores": get_cpu_info()["count"]
-        }
-        pl = cl.get_platforms()[0]
-        devices = pl.get_devices()
-        self.GPU = {}
-        for i, dev in enumerate(devices):
-            self.GPU[f"GPU{i + 1}"] = {
-                "name": dev.name,
-                "type": cl.device_type.to_string(dev.type),
-                "memory": (dev.global_mem_size // 1024 // 1024)
+        if not os.path.isfile('PC.pickle'):
+            self.CPU = {
+                "Info": get_cpu_info()["brand_raw"],
+                "cores": get_cpu_info()["count"]
             }
+            pl = cl.get_platforms()[0]
+            devices = pl.get_devices()
+            self.GPU = {}
+            for i, dev in enumerate(devices):
+                self.GPU[f"GPU{i + 1}"] = {
+                    "name": dev.name,
+                    "type": cl.device_type.to_string(dev.type),
+                    "memory": (dev.global_mem_size // 1024 // 1024)
+                }
+            f = open("PC.pickle")
+            f.write(pickle.dumps(self.MyComputer()))
+        else:
+            f = open("PC.pickle")
+            s = pickle.loads(f.read())
+            self.CPU = s["CPU"]
+            self.GPU = s["GPU"]
 
     def FindDevices(self):
         if self.OS == "Windows":
@@ -157,7 +166,9 @@ class Network:
             message = pickle.loads(data)
             print("Получено сообщение от {0}: {1}".format(addr[0], message))
             if "Action" in message and message["Action"] == "W" and self.large is True:
-                array = self.WaitPackets(message["PKG"])
+                WaitPackets_threading = threading.Thread(target=self.WaitPackets, args=(message["PKG"],))
+                # array = self.WaitPackets(message["PKG"])
+                array = WaitPackets_threading.start()
                 self.bots[addr[0]]["Data"] = array
                 self.bots[addr[0]]["Status"] = True
                 self.ready += 1
@@ -180,10 +191,18 @@ class Network:
         self.start = time.time()
         StartParallels_threading = threading.Thread(target=self.StartParallels, args=(action, array))
         AcceptingAction_threading = threading.Thread(target=self.AcceptingAction)
-        StartParallels_threading.start()
-        AcceptingAction_threading.start()
-        StartParallels_threading.join()
-        # AcceptingAction_threading.join()
+        if self.large is True:
+            print("Custom TCP: ", self.large)
+            StartParallels_threading.start()
+            StartParallels_threading.join()  # True
+            AcceptingAction_threading.start()
+            AcceptingAction_threading.join()
+        else:
+            print("Custom TCP: ", self.large)
+            StartParallels_threading.start()
+            AcceptingAction_threading.start()
+            StartParallels_threading.join()  # Для self.large is False
+            AcceptingAction_threading.join()
 
     def StartServer(self):
         while True:
@@ -314,7 +333,7 @@ class Network:
         chunks = [data[i:i + self.buffer] for i in range(0, len(data), self.buffer)]
         return chunks
 
-    #Получение множества пакетов
+    # Получение множества пакетов
     def WaitPackets(self, wp):  # wp - waitPackage ap - acceptedPackage
         print(f"Waiting Packets!\nPackets: {wp}")
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
