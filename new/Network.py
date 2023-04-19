@@ -221,7 +221,7 @@ class Network:
                                 array = [random.randint(0, 100) for i in range(length)]
                                 print(array)
                                 subarrays = self.createSubArrays(array=array)
-                                print(subarrays)
+                                print(len(subarrays))
                                 self.StartAction(action=action, array=subarrays)
                                 # self.ResetAction()
                             case "BE":
@@ -290,7 +290,7 @@ class Network:
                 case "S":
                     array = self.WaitPackets(data["PKG"])
                     array = Sort.merge_sort(array)
-                    print(array)
+                    print(len(array))
                     array = self.divPackets(array)
                     server_socket.sendto(pickle.dumps({"Action": "W", "PKG": len(array)}), (self.server, self.port))
                     for i in array:
@@ -325,7 +325,7 @@ class Network:
         while True:
             data, addr = server_socket.recvfrom(self.buffer)  # получаем сообщение и адрес отправителя
             fulldata += data
-            print(fulldata)
+            print(f"Packets {ap}")
             ap += 1
             if ap == wp:
                 break
