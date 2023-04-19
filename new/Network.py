@@ -356,22 +356,34 @@ class Network:
         return pickle.loads(fulldata)
 
     def TCP_SEND(self, port, ip, array):
-        print("Sending: ", ip, port)
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-            server_socket.bind((ip, port))  # привязываем сокет к IP адресу и порту
-            server_socket.listen()  # запускаем режим прослушивания
-            print('Server started')
-            connection, address = server_socket.accept()  # ждем подключения клиента
-            print('Connected by', address)
-            connection.sendall(pickle.dumps(array))
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # определяем параметры сервера и порта
+        server_address = (self.host, port)
+        server_socket.bind(server_address)
+        server_socket.listen(1)
+        while True:
+            print('Ожидание подключения...')
+            connection, client_address = server_socket.accept()
+            print(f'Подключено: {client_address}')
+            message = pickle.dumps(array)
+            connection.sendall(message)
             connection.close()
+            break
 
     def TCP_GET(self, ip, port):
         print("Getting: ",ip,port)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
             client_socket.connect((ip, port))  # подключаемся к серверу
-            data = pickle.loads(client_socket.recv(1024))
-            print(data)
+            data = ""
+            while True:
+                print('Ожидание подключения...')
+                connection, client_address = client_socket.accept()
+                print(f'Подключено: {client_address}')
+                data += connection.recv(1024)
+                print(f'Получено: {data}')
+                if len(data) == 0:
+                    break
+            print(pickle.loads(data))
 
 # Похожие функции FIndbots SendBots
 # Будущие фиксы
