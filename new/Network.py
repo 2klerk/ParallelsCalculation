@@ -160,6 +160,7 @@ class Network:
                     print(bot,)
                     self.SendBot(bot=bot, data=j, port=self.reserved_port)
 
+
     # обработка расределённых действий
     def AcceptingAction(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -198,15 +199,15 @@ class Network:
         if self.large is True:
             print("Custom TCP: ", self.large)
             StartParallels_threading.start()
-            StartParallels_threading.join()  # True
+            # StartParallels_threading.join()  # True
             print("Packets sends!")
             AcceptingAction_threading.start()
-            AcceptingAction_threading.join()
+            # AcceptingAction_threading.join()
         else:
             print("Custom TCP: ", self.large)
             StartParallels_threading.start()
             AcceptingAction_threading.start()
-            StartParallels_threading.join()  # Для self.large is False
+            # StartParallels_threading.join()  # Для self.large is False
             AcceptingAction_threading.join()
 
     def StartServer(self):
@@ -342,7 +343,8 @@ class Network:
     def WaitPackets(self, wp):  # wp - waitPackage ap - acceptedPackage
         print(f"Waiting Packets!\nPackets: {wp}")
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, self.buffer)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server_socket.bind(('0.0.0.0', self.reserved_port))
         ap = 0
         fulldata = b''
