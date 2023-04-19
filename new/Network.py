@@ -170,7 +170,8 @@ class Network:
             print("Получено сообщение от {0}: {1}".format(addr[0], message))
             if "Action" in message and message["Action"] == "W" and self.large is True:
                 # WaitPackets_threading = threading.Thread(target=self.WaitPackets, args=(message["PKG"],))
-                array = self.WaitPackets(message["PKG"])
+                # array = self.WaitPackets(message["PKG"])
+                array = self.TCP_GET(addr[0],self.reserved_port)
                 # array = WaitPackets_threading.start()
                 self.bots[addr[0]]["Data"] = array
                 self.bots[addr[0]]["Status"] = True
@@ -380,7 +381,10 @@ class Network:
                 if not chunk:
                     break
                 data += chunk
+            data = pickle.loads(data)
             print(f'Получено: {data}')
+            return data
+
 
 # Похожие функции FIndbots SendBots
 # Будущие фиксы
