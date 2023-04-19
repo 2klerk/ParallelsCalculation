@@ -371,21 +371,16 @@ class Network:
             break
 
     def TCP_GET(self, ip, port):
-        print("Getting: ",ip,port)
-        # client_socket.connect((ip, port))  # подключаемся к серверу
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind((self.host, port))
-        s.listen(1)
-        conn, addr = s.accept()
-        print('Connected by', addr)
-        data = b''
-        while True:
-            chunk = conn.recv(1024)
-            if not chunk:
-                break
-            data += chunk
-        print(pickle.loads(data))
-        conn.close()
+        print("Getting: ", ip, port)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+            client_socket.connect((ip, port))  # подключаемся к серверу
+            data = b""
+            while True:
+                chunk = client_socket.recv(1024)
+                if not chunk:
+                    break
+                data += chunk
+            print(f'Получено: {data}')
 
 # Похожие функции FIndbots SendBots
 # Будущие фиксы
