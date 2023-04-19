@@ -374,7 +374,7 @@ class Network:
         print("Getting: ",ip,port)
         # client_socket.connect((ip, port))  # подключаемся к серверу
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind((ip, port))
+        s.bind((self.host, port))
         s.listen(1)
         conn, addr = s.accept()
         print('Connected by', addr)
