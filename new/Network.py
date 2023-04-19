@@ -156,10 +156,8 @@ class Network:
             data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data, port=self.port)
             if self.large is True:
-                for j in packets:
-                    print(bot, )
-                    self.SendBot(bot=bot, data=j, port=self.reserved_port)
-            time.sleep(0.1)
+                self.TCP_SEND(ip=bot, port=self.reserved_port, array=array[i])
+            # time.sleep(0.1)
 
     # обработка расределённых действий
     def AcceptingAction(self):
@@ -201,8 +199,8 @@ class Network:
             # StartParallels_threading.start()
             self.StartParallels(action, array)
             # StartParallels_threading.join()  # True
-            print("Packets sends!")
-            AcceptingAction_threading.start()
+            # print("Packets sends!")
+            # AcceptingAction_threading.start()
             # AcceptingAction_threading.join()
         else:
             print("Custom TCP: ", self.large)
@@ -210,7 +208,6 @@ class Network:
             AcceptingAction_threading.start()
             # StartParallels_threading.join()  # Для self.large is False
             AcceptingAction_threading.join()
-
 
     def StartServer(self):
         while True:
@@ -315,13 +312,13 @@ class Network:
                     print("Command BE - BotNet stopped!")
                     exit(6)
                 case "S":
-                    array = self.WaitPackets(data["PKG"])
+                    self.TCP_GET(ip=self.server, port=self.reserved_port)
+                    # array = self.WaitPackets(data["PKG"])
                     array = Sort.merge_sort(array)
                     print(len(array))
-                    array = self.divPackets(array)
+                    # array = self.divPackets(array)
                     server_socket.sendto(pickle.dumps({"Action": "W", "PKG": len(array)}), (self.server, self.port))
-                    for i in array:
-                        server_socket.sendto(pickle.dumps(i), (self.server, self.reserved_port))
+                    self.TCP_SEND(ip=self.server, port=self.reserved_port, array=array)
                 case "B":
                     Id = int(data["Id"])
                     x = int(data["Range"])
@@ -357,6 +354,23 @@ class Network:
             if ap == wp:
                 break
         return pickle.loads(fulldata)
+
+    def TCP_SEND(self, port, ip, array):
+        tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        address = (ip, port)
+        tcp_sock.connect(address)
+        tcp_sock.sendall(pickle.dumps(array))
+
+    def TCP_GET(self, ip, port):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        address = (ip, port)
+        sock.connect(address)
+        packet = ""
+        while True:
+            data = sock.recv(1024)
+            if not data:
+                break
+            packet+=data
 
 # Похожие функции FIndbots SendBots
 # Будущие фиксы
