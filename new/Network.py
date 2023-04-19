@@ -149,12 +149,15 @@ class Network:
                 print(action["array"])
             elif self.large is True:
                 packets = self.divPackets(array[i])
+                # for j in packets:
+                #     print(j)
                 action["PKG"] = len(packets)
             action["Id"] = i
             data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data, port=self.port)
             if self.large is True:
                 for j in packets:
+                    print(bot,)
                     self.SendBot(bot=bot, data=j, port=self.reserved_port)
 
     # обработка расределённых действий
@@ -167,9 +170,9 @@ class Network:
             message = pickle.loads(data)
             print("Получено сообщение от {0}: {1}".format(addr[0], message))
             if "Action" in message and message["Action"] == "W" and self.large is True:
-                WaitPackets_threading = threading.Thread(target=self.WaitPackets, args=(message["PKG"],))
-                # array = self.WaitPackets(message["PKG"])
-                array = WaitPackets_threading.start()
+                # WaitPackets_threading = threading.Thread(target=self.WaitPackets, args=(message["PKG"],))
+                array = self.WaitPackets(message["PKG"])
+                # array = WaitPackets_threading.start()
                 self.bots[addr[0]]["Data"] = array
                 self.bots[addr[0]]["Status"] = True
                 self.ready += 1
@@ -196,6 +199,7 @@ class Network:
             print("Custom TCP: ", self.large)
             StartParallels_threading.start()
             StartParallels_threading.join()  # True
+            print("Packets sends!")
             AcceptingAction_threading.start()
             AcceptingAction_threading.join()
         else:
@@ -338,7 +342,7 @@ class Network:
     def WaitPackets(self, wp):  # wp - waitPackage ap - acceptedPackage
         print(f"Waiting Packets!\nPackets: {wp}")
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, self.buffer)
         server_socket.bind(('0.0.0.0', self.reserved_port))
         ap = 0
         fulldata = b''
