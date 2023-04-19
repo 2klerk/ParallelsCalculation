@@ -356,6 +356,7 @@ class Network:
         return pickle.loads(fulldata)
 
     def TCP_SEND(self, port, ip, array):
+        print("Sending: ", ip, port)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
             server_socket.bind((ip, port))  # привязываем сокет к IP адресу и порту
             server_socket.listen()  # запускаем режим прослушивания
@@ -366,6 +367,7 @@ class Network:
             connection.close()
 
     def TCP_GET(self, ip, port):
+        print("Getting: ",ip,port)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
             client_socket.connect((ip, port))  # подключаемся к серверу
             data = pickle.loads(client_socket.recv(1024))
