@@ -46,7 +46,8 @@ class Network:
         self.ready = 0
 
     def setSpecs(self):
-        if not os.path.isfile('PC.pickle'):
+        path = "PC.pickle"
+        if not os.path.isfile(path):
             self.CPU = {
                 "Info": get_cpu_info()["brand_raw"],
                 "cores": get_cpu_info()["count"]
@@ -60,10 +61,10 @@ class Network:
                     "type": cl.device_type.to_string(dev.type),
                     "memory": (dev.global_mem_size // 1024 // 1024)
                 }
-            f = open("PC.pickle")
+            f = open(path, "wb")
             f.write(pickle.dumps(self.MyComputer()))
         else:
-            f = open("PC.pickle")
+            f = open(path, "rb")
             s = pickle.loads(f.read())
             self.CPU = s["CPU"]
             self.GPU = s["GPU"]
