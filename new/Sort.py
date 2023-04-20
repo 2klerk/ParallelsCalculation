@@ -89,12 +89,12 @@ class Sort:
             __kernel void mergeSort(__global int *arr, int n) {
                 if (n > 1) {
                     int mid = n / 2;
-                    int* left = arr;
-                    int* right = arr + mid;
+                    __global int* left = arr;
+                    __global int* right = arr + mid;
                     mergeSort(left, mid);
                     mergeSort(right, n - mid);
                     int i = 0, j = mid, k = 0;
-                    int* temp = (int*)malloc(sizeof(int) * n);
+                    __global int* temp = (__global int*)cl_malloc(sizeof(__global int) * n, None, 0);
                     while (i < mid && j < n) {
                         if (left[i] < right[j]) {
                             temp[k] = left[i];
@@ -119,10 +119,10 @@ class Sort:
                     for (int l = 0; l < n; l++) {
                         arr[l] = temp[l];
                     }
-                    free(temp);
+                    cl_free(temp);
                 }
             }
-            """).build()
+            """).build(options=['-cl-std=CL2.0'])
 
         # Создаем буфер в GPU
         arr_gpu = cl.Buffer(ctx, cl.mem_flags.READ_WRITE, arr.nbytes)
