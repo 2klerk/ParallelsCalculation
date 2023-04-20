@@ -122,7 +122,7 @@ class Sort:
                     cl_free(temp);
                 }
             }
-            """).build(options=['-cl-std=CL2.0'])
+            """).build(options=['-cl-fast-relaxed-math'])
         # Определяем размер локальных и глобальных массивов
         global_size = arr.shape[0]
         local_size = 128
