@@ -311,7 +311,9 @@ class Network:
                     exit(6)
                 case "S":
                     array = self.TCP_GET(ip=self.server, port=self.reserved_port)
-                    if self.CPU["cores"] >= 2:
+                    if self.GPU is not None:
+                        array = Sort.sort_gpu(array)
+                    elif self.CPU["cores"] >= 2:
                         array = Sort.merge_sort_parallel(array)
                     else:
                         array = Sort.merge_sort(array)
