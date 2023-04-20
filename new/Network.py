@@ -245,9 +245,10 @@ class Network:
                                 self.large = True
                                 array = [random.randint(0, 100) for i in range(length)]
                                 print(array)
-                                subarrays = self.createSubArrays(array=array)
-                                print(len(subarrays))
-                                self.StartAction(action=action, array=subarrays)
+                                if len(self.bots) > 1:
+                                    array = self.createSubArrays(array=array)
+                                print(len(array))
+                                self.StartAction(action=action, array=array)
                             case "BE":
                                 self.Action = "BE"
                                 self.StartAction(action=action)

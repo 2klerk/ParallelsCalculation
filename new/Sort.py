@@ -79,7 +79,9 @@ class Sort:
 
     def sort_gpu(arr):
         # Создаем контекст OpenCL
-        ctx = cl.create_some_context()
+        platform = cl.get_platforms()[0]
+        device = platform.get_devices()[0]
+        ctx = cl.Context([device])
         # Создаем очередь команд
         queue = cl.CommandQueue(ctx)
         # Компилируем код ядра
