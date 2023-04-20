@@ -147,11 +147,6 @@ class Network:
             if array is not None and self.large is False:
                 action["array"] = array[i]
                 print(action["array"])
-            elif self.large is True:
-                packets = self.divPackets(array[i])
-                # for j in packets:
-                #     print(j)
-                action["PKG"] = len(packets)
             action["Id"] = i
             data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data, port=self.port)

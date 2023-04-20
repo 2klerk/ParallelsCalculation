@@ -42,15 +42,16 @@ class Sort:
             array += arrayList[i]["Data"]
         return array
 
-    def merge_sort_parallel(self,arr):
+    @staticmethod
+    def merge_sort_parallel(arr):
         if len(arr) > 1:
             mid = len(arr) // 2
             left_arr = arr[:mid]
             right_arr = arr[mid:]
 
             with multiprocessing.Pool(processes=2) as pool:
-                left_arr = pool.apply(self.merge_sort_parallel, [left_arr])
-                right_arr = pool.apply(self.merge_sort_parallel, [right_arr])
+                left_arr = pool.apply(Sort.merge_sort_parallel, [left_arr])
+                right_arr = pool.apply(Sort.merge_sort_parallel, [right_arr])
 
             i = j = k = 0
 
