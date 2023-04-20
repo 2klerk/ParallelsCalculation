@@ -137,7 +137,6 @@ class Sort:
         cl.enqueue_copy(queue, arr, arr_gpu)
         return arr
 
-
     @cuda.jit
     def sort_gpu_cuda(arr, tmp, start, end):
         if start >= end:
@@ -178,6 +177,7 @@ class Sort:
         n = arr.shape[0]
         tmp = cuda.device_array(n, arr.dtype)
         Sort.merge_sort_gpu[arr, tmp, 0, n - 1]
+
 
 arr = np.random.randint(0, 100, size=10)
 print("Unsorted array: ", arr)
