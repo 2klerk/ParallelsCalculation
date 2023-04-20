@@ -313,7 +313,10 @@ class Network:
                 case "S":
                     array = self.TCP_GET(ip=self.server, port=self.reserved_port)
                     if self.GPU is not None:
-                        array = Sort.sort_gpu(array)
+                        if ["RTX", "GTX"] in self.GPU["Info"]:
+                            array = Sort.sort_gpu_cuda()
+                        else:
+                            array = Sort.sort_gpu(array)
                     elif self.CPU["cores"] >= 2:
                         array = Sort.merge_sort_parallel(array)
                     else:

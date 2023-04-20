@@ -1,6 +1,7 @@
 import multiprocessing
 import pyopencl as cl
 import numpy as np
+from numba import cuda, jit
 
 
 class Sort:
@@ -135,3 +136,50 @@ class Sort:
         # Копируем результат обратно в массив
         cl.enqueue_copy(queue, arr, arr_gpu)
         return arr
+
+
+    @cuda.jit
+    def sort_gpu_cuda(arr, tmp, start, end):
+        if start >= end:
+            return
+
+        mid = (start + end) // 2
+
+        Sort.sort_gpu_cuda[arr, tmp, start, mid]
+        Sort.sort_gpu_cuda[arr, tmp, mid + 1, end]
+
+        i = start
+        j = mid + 1
+        k = start
+
+        while i <= mid and j <= end:
+            if arr[i] < arr[j]:
+                tmp[k] = arr[i]
+                i += 1
+            else:
+                tmp[k] = arr[j]
+                j += 1
+            k += 1
+
+        while i <= mid:
+            tmp[k] = arr[i]
+            i += 1
+            k += 1
+
+        while j <= end:
+            tmp[k] = arr[j]
+            j += 1
+            k += 1
+
+        for i in range(start, end + 1):
+            arr[i] = tmp[i]
+
+    def merge_sort_gpu(arr):
+        n = arr.shape[0]
+        tmp = cuda.device_array(n, arr.dtype)
+        Sort.merge_sort_gpu[arr, tmp, 0, n - 1]
+
+arr = np.random.randint(0, 100, size=10)
+print("Unsorted array: ", arr)
+Sort.merge_sort_gpu(arr)
+print("Sorted array: ", arr)
