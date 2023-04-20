@@ -94,7 +94,7 @@ class Sort:
                     mergeSort(left, mid);
                     mergeSort(right, n - mid);
                     int i = 0, j = mid, k = 0;
-                    __global int* temp = (__global int*)cl_malloc(sizeof(__global int) * n, None, 0);
+                    __global int* temp = (__global int*)cl_malloc(sizeof(int) * n, 0, 0);
                     while (i < mid && j < n) {
                         if (left[i] < right[j]) {
                             temp[k] = left[i];
@@ -123,13 +123,15 @@ class Sort:
                 }
             }
             """).build(options=['-cl-std=CL2.0'])
-
-        # Создаем буфер в GPU
+        # Определяем размер локальных и глобальных массивов
+        global_size = arr.shape[0]
+        local_size = 128
+        # Создаем буферы памяти для передачи данных в ядро
         arr_gpu = cl.Buffer(ctx, cl.mem_flags.READ_WRITE, arr.nbytes)
-        # Копируем массив на видеокарту
+        # Копируем данные в буфер
         cl.enqueue_copy(queue, arr_gpu, arr)
-        # Вызываем сортировку
-        prg.mergeSort(queue, arr.shape, None, arr_gpu, np.int32(arr.shape[0]))
-        # Копируем отсортированный массив обратно в ОЗУ
+        # Выполняем ядро
+        prg.mergeSort(queue, (global_size,), (local_size,), arr_gpu, np.int32(global_size))
+        # Копируем результат обратно в массив
         cl.enqueue_copy(queue, arr, arr_gpu)
         return arr
