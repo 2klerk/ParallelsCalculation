@@ -185,9 +185,14 @@ class Network:
         if self.Action == "S":
             print(self.bots)
             a = Sort()
-            array = a.mergeArray(arrayList=self.bots)
-            array = Sort.merge_sort(array)
-            print(array)
+            if 0 > len(self.bots) > 1:
+                array = a.mergeArray(arrayList=self.bots)
+                array = Sort.merge_sort(array)
+                print(array)
+                self.ResetAction()
+            else:
+                for i in self.bots:
+                    print(self.bots[i]["Data"])
             print(f"Time BotNet sort: {time.time() - self.start}")
 
     def StartAction(self, action, array=None):
@@ -248,7 +253,6 @@ class Network:
                                 subarrays = self.createSubArrays(array=array)
                                 print(len(subarrays))
                                 self.StartAction(action=action, array=subarrays)
-                                # self.ResetAction()
                             case "BE":
                                 self.Action = "BE"
                                 self.StartAction(action=action)
@@ -273,17 +277,15 @@ class Network:
                     exit(4)
                 case "t":
                     self.Action = "S"
+                    self.large = True
                     length = int(input("Array size: "))
                     array = [random.randint(0, 100) for i in range(length)]
                     start = time.time()
                     array.sort()
                     end = time.time()
-                    print(array)
-                    subarrays = self.createSubArrays(array=array)
-                    print(subarrays)
-                    self.StartAction(action=action, array=subarrays)
+                    # subarrays = self.createSubArrays(array=array)
+                    # self.StartAction(action=action, array=subarrays)
                     print("Standard sort", end - start)
-                    # self.ResetAction()
                 case _:
                     print("Command not found!")
 
@@ -314,10 +316,11 @@ class Network:
                     exit(6)
                 case "S":
                     array = self.TCP_GET(ip=self.server, port=self.reserved_port)
-                    # array = self.WaitPackets(data["PKG"])
-                    array = Sort.merge_sort(array)
+                    if self.CPU["cores"] >= 2:
+                        array = Sort.merge_sort_parallel(array)
+                    else:
+                        array = Sort.merge_sort(array)
                     print(len(array))
-                    # array = self.divPackets(array)
                     server_socket.sendto(pickle.dumps({"Action": "W", "PKG": len(array)}), (self.server, self.port))
                     self.TCP_SEND(ip=self.server, port=self.reserved_port, array=array)
                 case "B":
@@ -333,28 +336,6 @@ class Network:
                 case _:
                     print(f"Unknown command from {addr[0]}")
 
-    # Разделение данных на пакеты
-    def divPackets(self, data):
-        data = pickle.dumps(data)
-        chunks = [data[i:i + self.buffer] for i in range(0, len(data), self.buffer)]
-        return chunks
-
-    # Получение множества пакетов
-    def WaitPackets(self, wp):  # wp - waitPackage ap - acceptedPackage
-        print(f"Waiting Packets!\nPackets: {wp}")
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        server_socket.bind(('0.0.0.0', self.reserved_port))
-        ap = 0
-        fulldata = b''
-        while True:
-            data, addr = server_socket.recvfrom(self.buffer)  # получаем сообщение и адрес отправителя
-            fulldata += data
-            print(f"Packets {ap}")
-            ap += 1
-            if ap == wp:
-                break
-        return pickle.loads(fulldata)
 
     def TCP_SEND(self, port, ip, array):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
