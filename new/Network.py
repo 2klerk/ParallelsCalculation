@@ -312,14 +312,14 @@ class Network:
                     exit(6)
                 case "S":
                     array = self.TCP_GET(ip=self.server, port=self.reserved_port)
-                    if self.GPU is not None:
+                    # if self.GPU is not None:
                         # if ["RTX", "GTX"] in self.GPU["Info"]:
                         #     array = Sort.sort_gpu_cuda()
                         # else:
-                            array = Sort.sort_gpu(array)
-                    # if self.CPU["cores"] >= 2:
-                    #     array = Sort.merge_sort_parallel(array)
-                    # else:
+                        #     array = Sort.sort_gpu(array)
+                        # if self.CPU["cores"] >= 2:
+                        #     array = Sort.merge_sort_parallel(array)
+                        # else:
                     array = Sort.merge_sort(array)
                     print(len(array))
                     server_socket.sendto(pickle.dumps({"Action": "W", "PKG": len(array)}), (self.server, self.port))
