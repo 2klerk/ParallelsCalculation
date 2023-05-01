@@ -343,6 +343,7 @@ class Network:
         print(f"Send To{ip, port}")
         s.connect((ip, port))
         s.sendall(pickle.dumps(array))
+        s.shutdown(socket.SHUT_WR)  # закрывает отсылку данных в канал связи
         s.close()
         # определяем параметры сервера и порта
         # address = (self.host, port)
@@ -358,22 +359,25 @@ class Network:
         #     connection.close()
         #     break
 
+    def handle_client(self, s_socket):
+        data = b""
+        while True:
+            chunk = s_socket.recv(1024)
+            if not chunk:
+                break
+            data += chunk
+        data = pickle.loads(data)
+        print(f'Received: {data}')
     def TCP_GET(self, port):
-        print("Getting: ", self.ip, port)
+        print("Getting:", self.ip, port)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            # client_socket.connect((ip, port))  # подключаемся к серверу
             s.bind(("", port))
-            data = b""
+            s.listen()
             while True:
                 (s_socket, address) = s.accept()
-                print(f"From {address[0]}")
-                chunk = s_socket.recv(1024)
-                if not chunk:
-                    break
-                data += chunk
-            data = pickle.loads(data)
-            print(f'Получено: {data}')
-            return data
+                print(f"Connected by {address}")
+                t = threading.Thread(target=self.handle_client, args=(s_socket,))
+                t.start()
 
 # Похожие функции FIndbots SendBots
 # Будущие фиксы
