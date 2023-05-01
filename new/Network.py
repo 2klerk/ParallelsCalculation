@@ -153,10 +153,10 @@ class Network:
                     self.TCP_SEND(ip=bot, port=self.reserved_port, array=array[i])
                 else:
                     self.TCP_SEND(ip=bot, port=self.reserved_port, array=array)
-            # time.sleep(0.1)
+            time.sleep(0.01)
 
     # обработка расределённых действий
-    def AcceptingAction(self):
+    def AcceptingAction(self, array=None):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server_socket.bind(('0.0.0.0', self.port))
@@ -165,10 +165,7 @@ class Network:
             message = pickle.loads(data)
             print("Получено сообщение от {0}: {1}".format(addr[0], message))
             if "Action" in message and message["Action"] == "W" and self.large is True:
-                # WaitPackets_threading = threading.Thread(target=self.WaitPackets, args=(message["PKG"],))
-                # array = self.WaitPackets(message["PKG"])
                 array = self.TCP_GET(self.reserved_port)
-                # array = WaitPackets_threading.start()
                 self.bots[addr[0]]["Data"] = array
                 self.bots[addr[0]]["Status"] = True
                 self.ready += 1
@@ -177,19 +174,14 @@ class Network:
                 break
             if self.Action == "S" and self.ready == len(self.bots):
                 break
-        print(self.bots)
         if self.Action == "S":
-            print(self.bots)
             a = Sort()
             if 0 > len(self.bots) > 1:
                 array = a.mergeArray(arrayList=self.bots)
                 array = Sort.merge_sort(array)
-                print(array)
                 self.ResetAction()
-            else:
-                for i in self.bots:
-                    print(self.bots[i]["Data"])
             print(f"Time BotNet sort: {time.time() - self.start}")
+            return array
 
     def StartAction(self, action, array=None):
         action["Action"] = self.Action
@@ -199,7 +191,7 @@ class Network:
         if self.large is True:
             print("Custom TCP: ", self.large)
             StartParallels_threading.start()
-            StartParallels_threading.join()  # True
+            # StartParallels_threading.join()  # True
             print("Packets sends!")
             AcceptingAction_threading.start()
             AcceptingAction_threading.join()
@@ -244,7 +236,6 @@ class Network:
                                 length = int(input("Array size: "))
                                 self.large = True
                                 array = [random.randint(0, 100) for i in range(length)]
-                                print(array)
                                 if len(self.bots) > 1:
                                     array = self.createSubArrays(array=array)
                                 print(len(array))
@@ -321,7 +312,7 @@ class Network:
                     #     array = Sort.merge_sort_parallel(array)
                     # else:
                     array = Sort.merge_sort(array)
-                    print(len(array))
+                    print("Sorted: ", len(array))
                     server_socket.sendto(pickle.dumps({"Action": "W", "PKG": len(array)}), (self.server, self.port))
                     self.TCP_SEND(ip=self.server, port=self.reserved_port, array=array)
                 case "B":
