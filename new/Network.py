@@ -151,6 +151,7 @@ class Network:
             data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data, port=self.port)
             if self.large is True:
+                print(array,array[i])
                 self.TCP_SEND(ip=bot, port=self.reserved_port, array=array[i])
             # time.sleep(0.1)
 
