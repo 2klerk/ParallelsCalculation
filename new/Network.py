@@ -363,7 +363,6 @@ class Network:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             # client_socket.connect((ip, port))  # подключаемся к серверу
             s.bind(("", port))
-            s.listen(2)
             data = b""
             while True:
                 (s_socket, address) = s.accept()
