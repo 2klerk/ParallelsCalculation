@@ -150,7 +150,7 @@ class Network:
             data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data, port=self.port)
             if self.large is True:
-                if len(self.bots)>1:
+                if len(self.bots) > 1:
                     self.TCP_SEND(ip=bot, port=self.reserved_port, array=array[i])
                 else:
                     self.TCP_SEND(ip=bot, port=self.reserved_port, array=array)
@@ -200,7 +200,7 @@ class Network:
         if self.large is True:
             print("Custom TCP: ", self.large)
             StartParallels_threading.start()
-            StartParallels_threading.join()  # True
+            # StartParallels_threading.join()  # True
             # print("Packets sends!")
             AcceptingAction_threading.start()
             # AcceptingAction_threading.join()
@@ -340,27 +340,34 @@ class Network:
 
 
     def TCP_SEND(self, port, ip, array):
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((ip, port))
+        s.sendall(pickle.dumps(array))
+        s.close()
         # определяем параметры сервера и порта
-        server_address = (self.host, port)
-        server_socket.bind(server_address)
-        server_socket.listen(1)
-        while True:
-            print('Ожидание подключения...')
-            connection, client_address = server_socket.accept()
-            print(f'Подключено: {client_address}')
-            message = pickle.dumps(array)
-            connection.sendall(message)
-            connection.close()
-            break
+        # address = (self.host, port)
+        # print(f'Send to: {address}')
+        # server_socket.bind(address)
+        # server_socket.listen(1)
+        # while True:
+        #     print('Ожидание подключения...')
+        #     connection, client_address = server_socket.accept()
+        #     print(f'Подключено: {client_address}')
+        #     message = pickle.dumps(array)
+        #     connection.sendall(message)
+        #     connection.close()
+        #     break
 
-    def TCP_GET(self, ip, port):
-        print("Getting: ", ip, port)
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-            client_socket.connect((ip, port))  # подключаемся к серверу
+    def TCP_GET(self, port):
+        print("Getting: ", self.ip, port)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            # client_socket.connect((ip, port))  # подключаемся к серверу
+            s.bind((self.host, port))
+            s.listen(5)
             data = b""
             while True:
-                chunk = client_socket.recv(1024)
+                (s_socket, address) = s.accept()
+                chunk = s_socket.recv(1024)
                 if not chunk:
                     break
                 data += chunk
