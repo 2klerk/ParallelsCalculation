@@ -168,7 +168,7 @@ class Network:
             if "Action" in message and message["Action"] == "W" and self.large is True:
                 # WaitPackets_threading = threading.Thread(target=self.WaitPackets, args=(message["PKG"],))
                 # array = self.WaitPackets(message["PKG"])
-                array = self.TCP_GET(addr[0],self.reserved_port)
+                array = self.TCP_GET(self.reserved_port)
                 # array = WaitPackets_threading.start()
                 self.bots[addr[0]]["Data"] = array
                 self.bots[addr[0]]["Status"] = True
@@ -312,15 +312,15 @@ class Network:
                     print("Command BE - BotNet stopped!")
                     exit(6)
                 case "S":
-                    array = self.TCP_GET(ip=self.server, port=self.reserved_port)
+                    array = self.TCP_GET(port=self.reserved_port)
                     # if self.GPU is not None:
-                        # if ["RTX", "GTX"] in self.GPU["Info"]:
-                        #     array = Sort.sort_gpu_cuda()
-                        # else:
-                        #     array = Sort.sort_gpu(array)
-                        # if self.CPU["cores"] >= 2:
-                        #     array = Sort.merge_sort_parallel(array)
-                        # else:
+                    # if ["RTX", "GTX"] in self.GPU["Info"]:
+                    #     array = Sort.sort_gpu_cuda()
+                    # else:
+                    #     array = Sort.sort_gpu(array)
+                    # if self.CPU["cores"] >= 2:
+                    #     array = Sort.merge_sort_parallel(array)
+                    # else:
                     array = Sort.merge_sort(array)
                     print(len(array))
                     server_socket.sendto(pickle.dumps({"Action": "W", "PKG": len(array)}), (self.server, self.port))
@@ -337,7 +337,6 @@ class Network:
                     print(f"{addr[0]} send {data}")
                 case _:
                     print(f"Unknown command from {addr[0]}")
-
 
     def TCP_SEND(self, port, ip, array):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -374,7 +373,6 @@ class Network:
             data = pickle.loads(data)
             print(f'Получено: {data}')
             return data
-
 
 # Похожие функции FIndbots SendBots
 # Будущие фиксы
