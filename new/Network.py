@@ -200,8 +200,8 @@ class Network:
         if self.large is True:
             print("Custom TCP: ", self.large)
             StartParallels_threading.start()
-            # StartParallels_threading.join()  # True
-            # print("Packets sends!")
+            StartParallels_threading.join()  # True
+            print("Packets sends!")
             AcceptingAction_threading.start()
             # AcceptingAction_threading.join()
         else:
@@ -340,6 +340,7 @@ class Network:
 
     def TCP_SEND(self, port, ip, array):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print(f"Send To{ip, port}")
         s.connect((ip, port))
         s.sendall(pickle.dumps(array))
         s.close()
@@ -361,8 +362,8 @@ class Network:
         print("Getting: ", self.ip, port)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             # client_socket.connect((ip, port))  # подключаемся к серверу
-            s.bind((self.host, port))
-            s.listen(5)
+            s.bind(("", port))
+            s.listen(2)
             data = b""
             while True:
                 (s_socket, address) = s.accept()
