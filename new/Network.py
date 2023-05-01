@@ -346,17 +346,6 @@ class Network:
         s.shutdown(socket.SHUT_WR)  # закрывает отсылку данных в канал связи
         s.close()
 
-    def handle_client(self, s_socket):
-        data = b""
-        while True:
-            chunk = s_socket.recv(1024)
-            if not chunk:
-                break
-            data += chunk
-        data = pickle.loads(data)
-        print(f'Received: {data}')
-        return data
-
     def TCP_GET(self, port):
         print("Getting:", self.ip, port)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -372,7 +361,6 @@ class Network:
                         break
                     data += chunk
                 data = pickle.loads(data)
-                print(f'Received: {data}')
                 return data
 
 
