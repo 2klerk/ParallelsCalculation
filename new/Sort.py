@@ -1,12 +1,3 @@
-import multiprocessing
-from multiprocessing import freeze_support
-
-# import pyopencl as cl
-import numpy as np
-
-
-# import time
-
 
 class Sort:
     @staticmethod

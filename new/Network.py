@@ -7,7 +7,6 @@ from cpuinfo import get_cpu_info
 import subprocess
 import re
 import socket
-# import keyboard
 import threading
 from Brute import Brute
 import pickle
