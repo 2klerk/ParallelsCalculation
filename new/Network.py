@@ -143,7 +143,6 @@ class Network:
     # Отправка запросов клиентам
     def StartParallels(self, action, array=None):
         for i, bot in (enumerate(self.bots)):
-            packets = None
             if array is not None and self.large is False:
                 action["array"] = array[i]
                 print(action["array"])
@@ -151,8 +150,10 @@ class Network:
             data = self.CreateAction(action)
             self.SendBot(bot=bot, data=data, port=self.port)
             if self.large is True:
-                print(array,array[i])
-                self.TCP_SEND(ip=bot, port=self.reserved_port, array=array[i])
+                if len(self.bots)>1:
+                    self.TCP_SEND(ip=bot, port=self.reserved_port, array=array[i])
+                else:
+                    self.TCP_SEND(ip=bot, port=self.reserved_port, array=array)
             # time.sleep(0.1)
 
     # обработка расределённых действий

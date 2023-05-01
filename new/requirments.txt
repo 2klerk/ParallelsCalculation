@@ -1,6 +1,4 @@
 keyboard
 pyopencl
 py-cpuinfo
-numba
 numpy
-pycuda
