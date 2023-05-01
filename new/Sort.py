@@ -11,6 +11,7 @@ import numpy as np
 class Sort:
     @staticmethod
     def merge_sort(arr):
+        print(arr)
         if len(arr) > 1:
             mid = len(arr) // 2
             left_arr = arr[:mid]
@@ -49,3 +50,8 @@ class Sort:
             print(i)
             array += arrayList[i]["Data"]
         return array
+
+# array = [2,1,5,21,3213,5,1,2,521,5,99,34,6456]
+# S = Sort()
+# array = S.merge_sort(array)
+# print(array)
