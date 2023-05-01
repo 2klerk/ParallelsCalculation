@@ -199,12 +199,11 @@ class Network:
         AcceptingAction_threading = threading.Thread(target=self.AcceptingAction)
         if self.large is True:
             print("Custom TCP: ", self.large)
-            # StartParallels_threading.start()
-            self.StartParallels(action, array)
-            # StartParallels_threading.join()  # True
+            StartParallels_threading.start()
+            StartParallels_threading.join()  # True
             # print("Packets sends!")
             AcceptingAction_threading.start()
-            AcceptingAction_threading.join()
+            # AcceptingAction_threading.join()
         else:
             print("Custom TCP: ", self.large)
             StartParallels_threading.start()

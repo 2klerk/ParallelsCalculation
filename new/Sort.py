@@ -11,7 +11,6 @@ import numpy as np
 class Sort:
     @staticmethod
     def merge_sort(arr):
-        print(arr)
         if len(arr) > 1:
             mid = len(arr) // 2
             left_arr = arr[:mid]
@@ -47,7 +46,6 @@ class Sort:
     def mergeArray(arrayList):
         array = []
         for i in arrayList:
-            print(i)
             array += arrayList[i]["Data"]
         return array
 
