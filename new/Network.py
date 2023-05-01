@@ -203,7 +203,7 @@ class Network:
             StartParallels_threading.join()  # True
             print("Packets sends!")
             AcceptingAction_threading.start()
-            # AcceptingAction_threading.join()
+            AcceptingAction_threading.join()
         else:
             print("Custom TCP: ", self.large)
             StartParallels_threading.start()
@@ -345,19 +345,6 @@ class Network:
         s.sendall(pickle.dumps(array))
         s.shutdown(socket.SHUT_WR)  # закрывает отсылку данных в канал связи
         s.close()
-        # определяем параметры сервера и порта
-        # address = (self.host, port)
-        # print(f'Send to: {address}')
-        # server_socket.bind(address)
-        # server_socket.listen(1)
-        # while True:
-        #     print('Ожидание подключения...')
-        #     connection, client_address = server_socket.accept()
-        #     print(f'Подключено: {client_address}')
-        #     message = pickle.dumps(array)
-        #     connection.sendall(message)
-        #     connection.close()
-        #     break
 
     def handle_client(self, s_socket):
         data = b""
@@ -368,6 +355,8 @@ class Network:
             data += chunk
         data = pickle.loads(data)
         print(f'Received: {data}')
+        return data
+
     def TCP_GET(self, port):
         print("Getting:", self.ip, port)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -376,10 +365,15 @@ class Network:
             while True:
                 (s_socket, address) = s.accept()
                 print(f"Connected by {address}")
-                t = threading.Thread(target=self.handle_client, args=(s_socket,))
-                t.start()
+                data = b""
+                while True:
+                    chunk = s_socket.recv(1024)
+                    if not chunk:
+                        break
+                    data += chunk
+                data = pickle.loads(data)
+                print(f'Received: {data}')
+                return data
+
 
 # Похожие функции FIndbots SendBots
-# Будущие фиксы
-# сервер отправляет сам себе запросы! Удалить адрес сервера self.ip из self.addr
-# сделать аналог tcp и разделять пакеты
