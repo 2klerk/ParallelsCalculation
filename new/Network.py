@@ -366,6 +366,7 @@ class Network:
             data = b""
             while True:
                 (s_socket, address) = s.accept()
+                print(f"From {address[0]}")
                 chunk = s_socket.recv(1024)
                 if not chunk:
                     break
