@@ -1,6 +1,6 @@
 # ParallelsCalculation
 
-#Function 
+## Function 
 - Bruteforce
 - Message bots
 - Sorting array
